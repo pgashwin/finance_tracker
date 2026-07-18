@@ -3,7 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { WidgetGuide } from '@/components/dashboard/WidgetGuide';
 import type { WidgetGuideContent } from '@/content/dashboardGuides';
 import type { PnLSlice } from '@/services/analytics/portfolioAnalytics';
-import { formatCompactINR, formatPercent } from '@/utils/currency';
+import { useCurrency } from '@/hooks/useCurrency';
+import { formatPercent } from '@/utils/currency';
 
 interface Props {
   data: PnLSlice[];
@@ -12,6 +13,8 @@ interface Props {
 }
 
 export function PnLBreakdownChart({ data, totalPnl, guide }: Props) {
+  const { formatCompact } = useCurrency();
+
   if (!data.length) {
     return (
       <Card>
@@ -45,7 +48,7 @@ export function PnLBreakdownChart({ data, totalPnl, guide }: Props) {
         <p
           className={`text-sm font-medium ${totalPnl >= 0 ? 'text-green-600' : 'text-red-600'}`}
         >
-          Total unrealized P&L: {formatCompactINR(totalPnl)}
+          Total unrealized P&L: {formatCompact(totalPnl)}
         </p>
       </CardHeader>
       <CardContent>
@@ -53,10 +56,10 @@ export function PnLBreakdownChart({ data, totalPnl, guide }: Props) {
           <BarChart data={chartData} margin={{ bottom: 8 }}>
             <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
             <XAxis dataKey="name" tick={{ fontSize: 10 }} interval={0} angle={-15} textAnchor="end" height={60} />
-            <YAxis tickFormatter={(v) => formatCompactINR(v)} width={72} tick={{ fontSize: 11 }} />
+            <YAxis tickFormatter={(v) => formatCompact(v)} width={72} tick={{ fontSize: 11 }} />
             <Tooltip
               formatter={(v: number, name: string) => [
-                formatCompactINR(v),
+                formatCompact(v),
                 name === 'invested' ? 'Invested' : 'Current value',
               ]}
               labelFormatter={(_, payload) =>
@@ -82,7 +85,7 @@ export function PnLBreakdownChart({ data, totalPnl, guide }: Props) {
                 <tr key={row.name} className="border-b">
                   <td className="p-2">{row.name}</td>
                   <td className={`p-2 font-medium ${row.pnl >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    {formatCompactINR(row.pnl)}
+                    {formatCompact(row.pnl)}
                   </td>
                   <td className="p-2">
                     {row.pnlPercent != null ? formatPercent(row.pnlPercent) : '—'}

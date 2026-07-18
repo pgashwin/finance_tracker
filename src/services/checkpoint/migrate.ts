@@ -1,5 +1,6 @@
 import type { FinanceState } from '@/types';
 import { SCHEMA_VERSION } from '@/types';
+import { isCurrencyCode } from '@/constants/currencies';
 
 export function migrateCheckpoint(raw: Record<string, unknown>): Record<string, unknown> {
   const data = { ...raw };
@@ -10,6 +11,28 @@ export function migrateCheckpoint(raw: Record<string, unknown>): Record<string, 
       data.cryptoHoldings = [];
     }
     data.schemaVersion = 2;
+  }
+
+  if (version < 3) {
+    const profile =
+      data.profile && typeof data.profile === 'object'
+        ? { ...(data.profile as Record<string, unknown>) }
+        : {};
+    if (!isCurrencyCode(String(profile.baseCurrency ?? 'INR'))) {
+      profile.baseCurrency = 'INR';
+    }
+
+    const settings =
+      data.settings && typeof data.settings === 'object'
+        ? { ...(data.settings as Record<string, unknown>) }
+        : {};
+    if (!settings.exchangeRates || typeof settings.exchangeRates !== 'object') {
+      settings.exchangeRates = {};
+    }
+
+    data.profile = profile;
+    data.settings = settings;
+    data.schemaVersion = 3;
   }
 
   if (typeof data.schemaVersion !== 'number' || data.schemaVersion < SCHEMA_VERSION) {

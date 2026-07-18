@@ -5,16 +5,20 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Modal } from '@/components/ui/modal';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { formatINR } from '@/utils/currency';
-import type { LiquidFund } from '@/types';
+import { CurrencySelect } from '@/components/ui/currency-select';
+import { useCurrency } from '@/hooks/useCurrency';
+import { totalEmergencyFund, totalLiquidAssets } from '@/services/analytics/netWorth';
+import type { CurrencyCode, LiquidFund } from '@/types';
 import { BucketTotalBar } from '@/components/ui/bucket-total-bar';
 import { Pencil, Plus, Trash2 } from 'lucide-react';
 
 export function LiquidFundsPage() {
-  const items = useFinanceStore((s) => s.state.liquidFunds);
+  const state = useFinanceStore((s) => s.state);
+  const items = state.liquidFunds;
   const add = useFinanceStore((s) => s.addLiquidFund);
   const update = useFinanceStore((s) => s.updateLiquidFund);
   const remove = useFinanceStore((s) => s.deleteLiquidFund);
+  const { format, baseCurrency, symbol } = useCurrency();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<LiquidFund | null>(null);
 
@@ -23,11 +27,12 @@ export function LiquidFundsPage() {
     institution: '',
     balance: '',
     isEmergencyFund: false,
+    currency: baseCurrency,
   });
 
   const openNew = () => {
     setEditing(null);
-    setForm({ name: '', institution: '', balance: '', isEmergencyFund: false });
+    setForm({ name: '', institution: '', balance: '', isEmergencyFund: false, currency: baseCurrency });
     setOpen(true);
   };
 
@@ -38,6 +43,7 @@ export function LiquidFundsPage() {
       institution: item.institution ?? '',
       balance: String(item.balance),
       isEmergencyFund: item.isEmergencyFund,
+      currency: item.currency ?? baseCurrency,
     });
     setOpen(true);
   };
@@ -49,14 +55,15 @@ export function LiquidFundsPage() {
       institution: form.institution || undefined,
       balance: parseFloat(form.balance) || 0,
       isEmergencyFund: form.isEmergencyFund,
+      ...(form.currency !== baseCurrency ? { currency: form.currency as CurrencyCode } : {}),
     };
     if (editing) update(editing.id, data);
     else add(data);
     setOpen(false);
   };
 
-  const totalBalance = items.reduce((s, i) => s + i.balance, 0);
-  const emergencyTotal = items.filter((i) => i.isEmergencyFund).reduce((s, i) => s + i.balance, 0);
+  const totalBalance = totalLiquidAssets(state);
+  const emergencyTotal = totalEmergencyFund(state);
 
   return (
     <div className="space-y-4">
@@ -69,11 +76,11 @@ export function LiquidFundsPage() {
       {items.length > 0 && (
         <BucketTotalBar
           stats={[
-            { label: 'Total liquid', value: formatINR(totalBalance), sub: `${items.length} account(s)` },
-            { label: 'Emergency fund', value: formatINR(emergencyTotal), variant: 'positive' },
+            { label: 'Total liquid', value: format(totalBalance), sub: `${items.length} account(s)` },
+            { label: 'Emergency fund', value: format(emergencyTotal), variant: 'positive' },
             {
               label: 'Non-emergency',
-              value: formatINR(totalBalance - emergencyTotal),
+              value: format(totalBalance - emergencyTotal),
             },
           ]}
         />
@@ -97,7 +104,7 @@ export function LiquidFundsPage() {
                   )}
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="font-semibold">{formatINR(item.balance)}</span>
+                  <span className="font-semibold">{format(item.balance, item.currency)}</span>
                   <Button variant="ghost" size="icon" onClick={() => openEdit(item)}>
                     <Pencil className="h-4 w-4" />
                   </Button>
@@ -121,8 +128,16 @@ export function LiquidFundsPage() {
             <Input id="institution" value={form.institution} onChange={(e) => setForm({ ...form, institution: e.target.value })} />
           </div>
           <div>
-            <Label htmlFor="balance">Balance (₹)</Label>
+            <Label htmlFor="balance">Balance ({symbol})</Label>
             <Input id="balance" type="number" min="0" step="0.01" value={form.balance} onChange={(e) => setForm({ ...form, balance: e.target.value })} required />
+          </div>
+          <div>
+            <Label htmlFor="currency">Currency</Label>
+            <CurrencySelect
+              id="currency"
+              value={form.currency}
+              onChange={(currency) => setForm({ ...form, currency })}
+            />
           </div>
           <label className="flex items-center gap-2 text-sm">
             <input type="checkbox" checked={form.isEmergencyFund} onChange={(e) => setForm({ ...form, isEmergencyFund: e.target.checked })} />

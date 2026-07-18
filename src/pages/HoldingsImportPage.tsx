@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import { formatINR } from '@/utils/currency';
+import { useCurrency } from '@/hooks/useCurrency';
 import {
   parseZerodhaCsv,
   parseZerodhaXlsxDetailed,
@@ -19,6 +19,7 @@ export function HoldingsImportPage() {
   const holdings = useFinanceStore((s) => s.state.holdings);
   const setHoldings = useFinanceStore((s) => s.setHoldings);
   const showToast = useFinanceStore((s) => s.showToast);
+  const { format } = useCurrency();
   const [preview, setPreview] = useState<ParsedHoldingRow[]>([]);
   const [parseInfo, setParseInfo] = useState<string | null>(null);
   const [mode, setMode] = useState<'merge' | 'replace'>('merge');
@@ -122,7 +123,7 @@ export function HoldingsImportPage() {
                       <td className="p-2">{r.symbol}</td>
                       <td className="p-2">{r.name}</td>
                       <td className="p-2">{r.quantity}</td>
-                      <td className="p-2">{formatINR(r.currentPrice)}</td>
+                      <td className="p-2">{format(r.currentPrice)}</td>
                     </tr>
                   ))}
                 </tbody>

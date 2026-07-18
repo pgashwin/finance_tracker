@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { WidgetGuide } from '@/components/dashboard/WidgetGuide';
 import type { WidgetGuideContent } from '@/content/dashboardGuides';
 import type { RecurringBreakdown } from '@/services/analytics/netWorth';
-import { formatINR } from '@/utils/currency';
+import { useCurrency } from '@/hooks/useCurrency';
 
 interface Props {
   data: RecurringBreakdown[];
@@ -11,6 +11,7 @@ interface Props {
 }
 
 export function RecurringBreakdownChart({ data, guide }: Props) {
+  const { format } = useCurrency();
   const chartData = data.map((d) => ({
     category: d.category.replace(/_/g, ' '),
     amount: d.amount,
@@ -38,9 +39,9 @@ export function RecurringBreakdownChart({ data, guide }: Props) {
       <CardContent>
         <ResponsiveContainer width="100%" height={260}>
           <BarChart data={chartData} layout="vertical" margin={{ left: 20 }}>
-            <XAxis type="number" tickFormatter={(v) => formatINR(v)} />
+            <XAxis type="number" tickFormatter={(v) => format(v)} />
             <YAxis type="category" dataKey="category" width={100} tick={{ fontSize: 11 }} />
-            <Tooltip formatter={(v: number) => formatINR(v)} />
+            <Tooltip formatter={(v: number) => format(v)} />
             <Bar dataKey="amount" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
           </BarChart>
         </ResponsiveContainer>

@@ -1,5 +1,5 @@
 import type { FinanceState, Insight } from '@/types';
-import { formatINR } from '@/utils/currency';
+import { formatForState } from '@/utils/currency';
 import {
   debtToAssetRatio,
   emiBurdenPercent,
@@ -27,7 +27,7 @@ export function generateInsights(state: FinanceState): Insight[] {
       insights.push({
         severity: 'success',
         title: 'Adequate term insurance',
-        description: `Term coverage (${formatINR(termInsuranceCoverage(state))}) is ${coverageRatio.toFixed(1)}× annual income.`,
+        description: `Term coverage (${formatForState(termInsuranceCoverage(state), state)}) is ${coverageRatio.toFixed(1)}× annual income.`,
         actionRoute: '/insurance',
       });
     }
@@ -85,7 +85,7 @@ export function generateInsights(state: FinanceState): Insight[] {
     insights.push({
       severity: 'info',
       title: `${m.type} maturing soon`,
-      description: `${m.name} matures on ${m.date}: ${formatINR(m.amount)}`,
+      description: `${m.name} matures on ${m.date}: ${formatForState(m.amount, state)}`,
       actionRoute: '/fixed-deposits',
     });
   }
@@ -123,7 +123,7 @@ export function generateInsights(state: FinanceState): Insight[] {
       insights.push({
         severity: 'warning',
         title: 'Net worth declined',
-        description: `Net worth down ${formatINR(prev.netWorth - current)} since ${prev.month}.`,
+        description: `Net worth down ${formatForState(prev.netWorth - current, state)} since ${prev.month}.`,
         actionRoute: '/',
       });
     }

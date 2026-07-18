@@ -6,8 +6,10 @@ import { Modal } from '@/components/ui/modal';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
-import { formatINR } from '@/utils/currency';
-import type { Loan, LoanType } from '@/types';
+import { CurrencySelect } from '@/components/ui/currency-select';
+import { useCurrency } from '@/hooks/useCurrency';
+import { totalLiabilities } from '@/services/analytics/netWorth';
+import type { CurrencyCode, Loan, LoanType } from '@/types';
 import { BucketTotalBar } from '@/components/ui/bucket-total-bar';
 import { todayDate } from '@/utils/ids';
 import { Pencil, Plus, Trash2 } from 'lucide-react';
@@ -15,20 +17,22 @@ import { Pencil, Plus, Trash2 } from 'lucide-react';
 const loanTypes: LoanType[] = ['home', 'car', 'personal', 'education', 'gold', 'other'];
 
 export function LoansPage() {
-  const items = useFinanceStore((s) => s.state.loans);
+  const state = useFinanceStore((s) => s.state);
+  const items = state.loans;
   const add = useFinanceStore((s) => s.addLoan);
   const update = useFinanceStore((s) => s.updateLoan);
   const remove = useFinanceStore((s) => s.deleteLoan);
+  const { format, toBase, baseCurrency, symbol } = useCurrency();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Loan | null>(null);
 
   const emptyForm = {
     name: '', loanType: 'home' as LoanType, lender: '', principal: '', outstandingBalance: '',
-    interestRate: '', emiAmount: '', tenureMonths: '', startDate: todayDate(),
+    interestRate: '', emiAmount: '', tenureMonths: '', startDate: todayDate(), currency: baseCurrency,
   };
   const [form, setForm] = useState(emptyForm);
 
-  const openNew = () => { setEditing(null); setForm(emptyForm); setOpen(true); };
+  const openNew = () => { setEditing(null); setForm({ ...emptyForm, currency: baseCurrency }); setOpen(true); };
   const openEdit = (item: Loan) => {
     setEditing(item);
     setForm({
@@ -36,6 +40,7 @@ export function LoansPage() {
       principal: String(item.principal), outstandingBalance: String(item.outstandingBalance),
       interestRate: String(item.interestRate), emiAmount: String(item.emiAmount),
       tenureMonths: String(item.tenureMonths), startDate: item.startDate,
+      currency: item.currency ?? baseCurrency,
     });
     setOpen(true);
   };
@@ -47,15 +52,16 @@ export function LoansPage() {
       principal: parseFloat(form.principal) || 0, outstandingBalance: parseFloat(form.outstandingBalance) || 0,
       interestRate: parseFloat(form.interestRate) || 0, emiAmount: parseFloat(form.emiAmount) || 0,
       tenureMonths: parseInt(form.tenureMonths, 10) || 0, startDate: form.startDate,
+      ...(form.currency !== baseCurrency ? { currency: form.currency as CurrencyCode } : {}),
     };
     if (editing) update(editing.id, data);
     else add(data);
     setOpen(false);
   };
 
-  const totalOutstanding = items.reduce((s, i) => s + i.outstandingBalance, 0);
-  const totalEmi = items.reduce((s, i) => s + i.emiAmount, 0);
-  const totalPrincipal = items.reduce((s, i) => s + i.principal, 0);
+  const totalOutstanding = totalLiabilities(state);
+  const totalEmi = items.reduce((s, i) => s + toBase(i.emiAmount, i.currency), 0);
+  const totalPrincipal = items.reduce((s, i) => s + toBase(i.principal, i.currency), 0);
 
   return (
     <div className="space-y-4">
@@ -68,12 +74,12 @@ export function LoansPage() {
           stats={[
             {
               label: 'Total outstanding',
-              value: formatINR(totalOutstanding),
+              value: format(totalOutstanding),
               sub: `${items.length} loan(s)`,
               variant: 'negative',
             },
-            { label: 'Total EMI / month', value: formatINR(totalEmi) },
-            { label: 'Original principal', value: formatINR(totalPrincipal) },
+            { label: 'Total EMI / month', value: format(totalEmi) },
+            { label: 'Original principal', value: format(totalPrincipal) },
           ]}
         />
       )}
@@ -87,11 +93,11 @@ export function LoansPage() {
                 <div>
                   <p className="font-medium">{item.name}</p>
                   <p className="text-sm text-muted-foreground">
-                    {item.lender} · {item.loanType} · EMI {formatINR(item.emiAmount)} @ {item.interestRate}%
+                    {item.lender} · {item.loanType} · EMI {format(item.emiAmount, item.currency)} @ {item.interestRate}%
                   </p>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="font-semibold text-red-600">{formatINR(item.outstandingBalance)}</span>
+                  <span className="font-semibold text-red-600">{format(item.outstandingBalance, item.currency)}</span>
                   <Button variant="ghost" size="icon" onClick={() => openEdit(item)}><Pencil className="h-4 w-4" /></Button>
                   <Button variant="ghost" size="icon" onClick={() => remove(item.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
                 </div>
@@ -110,10 +116,14 @@ export function LoansPage() {
               {loanTypes.map((t) => <option key={t} value={t}>{t}</option>)}
             </Select>
           </div>
-          <div><Label>Principal (₹)</Label><Input type="number" min="0" value={form.principal} onChange={(e) => setForm({ ...form, principal: e.target.value })} required /></div>
-          <div><Label>Outstanding (₹)</Label><Input type="number" min="0" value={form.outstandingBalance} onChange={(e) => setForm({ ...form, outstandingBalance: e.target.value })} required /></div>
+          <div><Label>Principal ({symbol})</Label><Input type="number" min="0" value={form.principal} onChange={(e) => setForm({ ...form, principal: e.target.value })} required /></div>
+          <div><Label>Outstanding ({symbol})</Label><Input type="number" min="0" value={form.outstandingBalance} onChange={(e) => setForm({ ...form, outstandingBalance: e.target.value })} required /></div>
           <div><Label>Interest Rate (%)</Label><Input type="number" min="0" step="0.01" value={form.interestRate} onChange={(e) => setForm({ ...form, interestRate: e.target.value })} required /></div>
-          <div><Label>EMI (₹)</Label><Input type="number" min="0" value={form.emiAmount} onChange={(e) => setForm({ ...form, emiAmount: e.target.value })} required /></div>
+          <div><Label>EMI ({symbol})</Label><Input type="number" min="0" value={form.emiAmount} onChange={(e) => setForm({ ...form, emiAmount: e.target.value })} required /></div>
+          <div>
+            <Label>Currency</Label>
+            <CurrencySelect value={form.currency} onChange={(currency) => setForm({ ...form, currency })} />
+          </div>
           <div><Label>Tenure (months)</Label><Input type="number" min="1" value={form.tenureMonths} onChange={(e) => setForm({ ...form, tenureMonths: e.target.value })} required /></div>
           <div><Label>Start Date</Label><Input type="date" value={form.startDate} onChange={(e) => setForm({ ...form, startDate: e.target.value })} required /></div>
           <Button type="submit" className="sm:col-span-2 w-full">Save</Button>

@@ -6,18 +6,22 @@ import { Modal } from '@/components/ui/modal';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
-import { formatINR, formatCompactINR } from '@/utils/currency';
-import { cryptoCurrentValue, cryptoGainLoss, cryptoInvestedValue } from '@/services/analytics/netWorth';
-import type { CryptoHolding } from '@/types';
+import { CurrencySelect } from '@/components/ui/currency-select';
+import { useCurrency } from '@/hooks/useCurrency';
+import { getCurrencySymbol } from '@/utils/currency';
+import { cryptoCurrentValue, cryptoGainLoss, cryptoInvestedValue, totalCryptoValue } from '@/services/analytics/netWorth';
+import type { CryptoHolding, CurrencyCode } from '@/types';
 import { BucketTotalBar } from '@/components/ui/bucket-total-bar';
 import { nowIso } from '@/utils/ids';
 import { Pencil, Plus, Trash2, Upload } from 'lucide-react';
 
 export function CryptoPage() {
-  const items = useFinanceStore((s) => s.state.cryptoHoldings ?? []);
+  const state = useFinanceStore((s) => s.state);
+  const items = state.cryptoHoldings ?? [];
   const add = useFinanceStore((s) => s.addCryptoHolding);
   const update = useFinanceStore((s) => s.updateCryptoHolding);
   const remove = useFinanceStore((s) => s.deleteCryptoHolding);
+  const { format, formatCompact, toBase, baseCurrency } = useCurrency();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<CryptoHolding | null>(null);
 
@@ -28,12 +32,14 @@ export function CryptoPage() {
     averageBuyPrice: '',
     currentPrice: '',
     exchange: 'other' as CryptoHolding['exchange'],
+    quoteCurrency: baseCurrency,
   };
   const [form, setForm] = useState(emptyForm);
+  const priceSymbol = getCurrencySymbol(form.quoteCurrency);
 
   const openNew = () => {
     setEditing(null);
-    setForm(emptyForm);
+    setForm({ ...emptyForm, quoteCurrency: baseCurrency });
     setOpen(true);
   };
 
@@ -46,6 +52,7 @@ export function CryptoPage() {
       averageBuyPrice: String(item.averageBuyPrice),
       currentPrice: String(item.currentPrice),
       exchange: item.exchange,
+      quoteCurrency: item.quoteCurrency ?? baseCurrency,
     });
     setOpen(true);
   };
@@ -60,7 +67,7 @@ export function CryptoPage() {
       averageBuyPrice: parseFloat(form.averageBuyPrice) || 0,
       currentPrice: parseFloat(form.currentPrice) || 0,
       exchange: form.exchange,
-      quoteCurrency: 'INR' as const,
+      quoteCurrency: form.quoteCurrency as CurrencyCode,
       lastUpdated: nowIso(),
     };
     if (editing) update(editing.id, data);
@@ -68,9 +75,15 @@ export function CryptoPage() {
     setOpen(false);
   };
 
-  const totalValue = items.reduce((sum, h) => sum + cryptoCurrentValue(h), 0);
-  const totalInvested = items.reduce((sum, h) => sum + cryptoInvestedValue(h), 0);
-  const totalPnl = items.reduce((sum, h) => sum + cryptoGainLoss(h), 0);
+  const totalValue = totalCryptoValue(state);
+  const totalInvested = items.reduce(
+    (sum, h) => sum + toBase(cryptoInvestedValue(h), h.quoteCurrency),
+    0,
+  );
+  const totalPnl = items.reduce(
+    (sum, h) => sum + toBase(cryptoGainLoss(h), h.quoteCurrency),
+    0,
+  );
 
   return (
     <div className="space-y-4">
@@ -90,11 +103,11 @@ export function CryptoPage() {
       {items.length > 0 && (
         <BucketTotalBar
           stats={[
-            { label: 'Current value', value: formatINR(totalValue), sub: `${items.length} coin(s)` },
-            { label: 'Invested', value: formatINR(totalInvested) },
+            { label: 'Current value', value: format(totalValue), sub: `${items.length} coin(s)` },
+            { label: 'Invested', value: format(totalInvested) },
             {
               label: 'Unrealized P&L',
-              value: formatCompactINR(totalPnl),
+              value: formatCompact(totalPnl),
               variant: totalPnl >= 0 ? 'positive' : 'negative',
             },
           ]}
@@ -127,10 +140,10 @@ export function CryptoPage() {
                       </div>
                     </td>
                     <td className="p-2">{item.quantity}</td>
-                    <td className="p-2">{formatINR(cryptoInvestedValue(item))}</td>
-                    <td className="p-2">{formatINR(cryptoCurrentValue(item))}</td>
+                    <td className="p-2">{format(cryptoInvestedValue(item), item.quoteCurrency)}</td>
+                    <td className="p-2">{format(cryptoCurrentValue(item), item.quoteCurrency)}</td>
                     <td className={`p-2 ${pnl >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                      {formatINR(pnl)}
+                      {format(pnl, item.quoteCurrency)}
                     </td>
                     <td className="p-2">
                       <Button variant="ghost" size="icon" onClick={() => openEdit(item)}>
@@ -183,7 +196,14 @@ export function CryptoPage() {
             />
           </div>
           <div>
-            <Label>Avg Buy Price (₹)</Label>
+            <Label>Quote Currency</Label>
+            <CurrencySelect
+              value={form.quoteCurrency}
+              onChange={(quoteCurrency) => setForm({ ...form, quoteCurrency })}
+            />
+          </div>
+          <div>
+            <Label>Avg Buy Price ({priceSymbol})</Label>
             <Input
               type="number"
               min="0"
@@ -194,7 +214,7 @@ export function CryptoPage() {
             />
           </div>
           <div>
-            <Label>Current Price (₹)</Label>
+            <Label>Current Price ({priceSymbol})</Label>
             <Input
               type="number"
               min="0"

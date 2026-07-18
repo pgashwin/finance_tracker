@@ -2,7 +2,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { WidgetGuide } from '@/components/dashboard/WidgetGuide';
 import type { WidgetGuideContent } from '@/content/dashboardGuides';
 import type { MaturityItem } from '@/services/analytics/netWorth';
-import { formatINR, formatDate } from '@/utils/currency';
+import { useCurrency } from '@/hooks/useCurrency';
+import { formatDate } from '@/utils/currency';
 
 interface Props {
   items: MaturityItem[];
@@ -10,6 +11,8 @@ interface Props {
 }
 
 export function UpcomingMaturities({ items, guide }: Props) {
+  const { format } = useCurrency();
+
   return (
     <Card>
       <CardHeader>
@@ -28,7 +31,7 @@ export function UpcomingMaturities({ items, guide }: Props) {
                     {item.type} · {formatDate(item.date)}
                   </p>
                 </div>
-                <span className="font-semibold">{formatINR(item.amount)}</span>
+                <span className="font-semibold">{format(item.amount)}</span>
               </li>
             ))}
           </ul>

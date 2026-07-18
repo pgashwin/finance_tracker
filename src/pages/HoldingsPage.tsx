@@ -6,9 +6,10 @@ import { Modal } from '@/components/ui/modal';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
-import { formatINR, formatCompactINR } from '@/utils/currency';
+import { CurrencySelect } from '@/components/ui/currency-select';
+import { useCurrency } from '@/hooks/useCurrency';
 import { holdingCurrentValue, holdingGainLoss, holdingInvestedValue } from '@/services/analytics/netWorth';
-import type { Holding } from '@/types';
+import type { CurrencyCode, Holding } from '@/types';
 import { BucketTotalBar } from '@/components/ui/bucket-total-bar';
 import { nowIso } from '@/utils/ids';
 import { Pencil, Plus, Trash2, Upload } from 'lucide-react';
@@ -18,6 +19,7 @@ export function HoldingsPage() {
   const add = useFinanceStore((s) => s.addHolding);
   const update = useFinanceStore((s) => s.updateHolding);
   const remove = useFinanceStore((s) => s.deleteHolding);
+  const { format, formatCompact, toBase, baseCurrency, symbol } = useCurrency();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Holding | null>(null);
 
@@ -29,12 +31,13 @@ export function HoldingsPage() {
     currentPrice: '',
     instrumentType: 'stock' as Holding['instrumentType'],
     broker: 'other' as Holding['broker'],
+    currency: baseCurrency,
   };
   const [form, setForm] = useState(emptyForm);
 
   const openNew = () => {
     setEditing(null);
-    setForm(emptyForm);
+    setForm({ ...emptyForm, currency: baseCurrency });
     setOpen(true);
   };
 
@@ -48,6 +51,7 @@ export function HoldingsPage() {
       currentPrice: String(item.currentPrice),
       instrumentType: item.instrumentType,
       broker: item.broker,
+      currency: item.currency ?? baseCurrency,
     });
     setOpen(true);
   };
@@ -63,14 +67,21 @@ export function HoldingsPage() {
       instrumentType: form.instrumentType,
       broker: form.broker,
       lastUpdated: nowIso(),
+      ...(form.currency !== baseCurrency ? { currency: form.currency as CurrencyCode } : {}),
     };
     if (editing) update(editing.id, data);
     else add(data);
     setOpen(false);
   };
 
-  const totalInvested = items.reduce((s, h) => s + holdingInvestedValue(h), 0);
-  const totalCurrent = items.reduce((s, h) => s + holdingCurrentValue(h), 0);
+  const totalInvested = items.reduce(
+    (s, h) => s + toBase(holdingInvestedValue(h), h.currency),
+    0,
+  );
+  const totalCurrent = items.reduce(
+    (s, h) => s + toBase(holdingCurrentValue(h), h.currency),
+    0,
+  );
   const totalPnl = totalCurrent - totalInvested;
 
   return (
@@ -85,11 +96,11 @@ export function HoldingsPage() {
       {items.length > 0 && (
         <BucketTotalBar
           stats={[
-            { label: 'Current value', value: formatINR(totalCurrent), sub: `${items.length} holding(s)` },
-            { label: 'Invested', value: formatINR(totalInvested) },
+            { label: 'Current value', value: format(totalCurrent), sub: `${items.length} holding(s)` },
+            { label: 'Invested', value: format(totalInvested) },
             {
               label: 'Unrealized P&L',
-              value: formatCompactINR(totalPnl),
+              value: formatCompact(totalPnl),
               variant: totalPnl >= 0 ? 'positive' : 'negative',
             },
           ]}
@@ -120,9 +131,9 @@ export function HoldingsPage() {
                       <div className="text-xs text-muted-foreground">{item.symbol} · {item.broker}</div>
                     </td>
                     <td className="p-2">{item.quantity}</td>
-                    <td className="p-2">{formatINR(holdingInvestedValue(item))}</td>
-                    <td className="p-2">{formatINR(holdingCurrentValue(item))}</td>
-                    <td className={`p-2 ${pnl >= 0 ? 'text-green-600' : 'text-red-600'}`}>{formatINR(pnl)}</td>
+                    <td className="p-2">{format(holdingInvestedValue(item), item.currency)}</td>
+                    <td className="p-2">{format(holdingCurrentValue(item), item.currency)}</td>
+                    <td className={`p-2 ${pnl >= 0 ? 'text-green-600' : 'text-red-600'}`}>{format(pnl, item.currency)}</td>
                     <td className="p-2">
                       <Button variant="ghost" size="icon" onClick={() => openEdit(item)}><Pencil className="h-4 w-4" /></Button>
                       <Button variant="ghost" size="icon" onClick={() => remove(item.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
@@ -139,8 +150,12 @@ export function HoldingsPage() {
           <div className="sm:col-span-2"><Label>Symbol</Label><Input value={form.symbol} onChange={(e) => setForm({ ...form, symbol: e.target.value })} required /></div>
           <div className="sm:col-span-2"><Label>Name</Label><Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required /></div>
           <div><Label>Quantity</Label><Input type="number" min="0" step="any" value={form.quantity} onChange={(e) => setForm({ ...form, quantity: e.target.value })} required /></div>
-          <div><Label>Avg Price</Label><Input type="number" min="0" step="any" value={form.averagePrice} onChange={(e) => setForm({ ...form, averagePrice: e.target.value })} required /></div>
-          <div><Label>Current Price</Label><Input type="number" min="0" step="any" value={form.currentPrice} onChange={(e) => setForm({ ...form, currentPrice: e.target.value })} required /></div>
+          <div><Label>Avg Price ({symbol})</Label><Input type="number" min="0" step="any" value={form.averagePrice} onChange={(e) => setForm({ ...form, averagePrice: e.target.value })} required /></div>
+          <div><Label>Current Price ({symbol})</Label><Input type="number" min="0" step="any" value={form.currentPrice} onChange={(e) => setForm({ ...form, currentPrice: e.target.value })} required /></div>
+          <div>
+            <Label>Currency</Label>
+            <CurrencySelect value={form.currency} onChange={(currency) => setForm({ ...form, currency })} />
+          </div>
           <div>
             <Label>Type</Label>
             <Select value={form.instrumentType} onChange={(e) => setForm({ ...form, instrumentType: e.target.value as Holding['instrumentType'] })}>

@@ -3,7 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { WidgetGuide } from '@/components/dashboard/WidgetGuide';
 import type { WidgetGuideContent } from '@/content/dashboardGuides';
 import type { FinanceBucketRow } from '@/services/analytics/portfolioAnalytics';
-import { formatCompactINR, formatPercent } from '@/utils/currency';
+import { useCurrency } from '@/hooks/useCurrency';
+import { formatPercent } from '@/utils/currency';
 
 interface Props {
   data: FinanceBucketRow[];
@@ -11,6 +12,8 @@ interface Props {
 }
 
 export function FinanceBucketsChart({ data, guide }: Props) {
+  const { formatCompact } = useCurrency();
+
   if (!data.length) {
     return (
       <Card>
@@ -41,11 +44,11 @@ export function FinanceBucketsChart({ data, guide }: Props) {
       <CardContent>
         <ResponsiveContainer width="100%" height={280}>
           <BarChart data={chartData} layout="vertical" margin={{ left: 8, right: 16 }}>
-            <XAxis type="number" tickFormatter={(v) => formatCompactINR(v)} />
+            <XAxis type="number" tickFormatter={(v) => formatCompact(v)} />
             <YAxis type="category" dataKey="bucket" width={110} tick={{ fontSize: 11 }} />
             <Tooltip
               formatter={(v: number, _n, props) => [
-                `${formatCompactINR(v)} (${formatPercent(props.payload.percent)})`,
+                `${formatCompact(v)} (${formatPercent(props.payload.percent)})`,
                 'Value',
               ]}
             />

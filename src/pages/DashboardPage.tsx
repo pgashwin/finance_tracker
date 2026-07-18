@@ -41,14 +41,15 @@ import {
   assetsVsLiabilitiesSummary,
 } from '@/services/analytics/portfolioAnalytics';
 import { generateInsights } from '@/services/analytics/insights';
-import { formatCompactINR, formatPercent } from '@/utils/currency';
+import { useCurrency } from '@/hooks/useCurrency';
+import { formatPercent } from '@/utils/currency';
 import { TrendingUp, Wallet, CreditCard, Repeat, Camera } from 'lucide-react';
 
 export function DashboardPage() {
   const state = useFinanceStore((s) => s.state);
   const hasLoadedCheckpoint = useFinanceStore((s) => s.hasLoadedCheckpoint);
   const recordMonthlySnapshot = useFinanceStore((s) => s.recordMonthlySnapshot);
-  const fmt = (n: number) => formatCompactINR(n);
+  const { formatCompact: fmt } = useCurrency();
 
   const nw = netWorth(state);
   const insights = generateInsights(state);

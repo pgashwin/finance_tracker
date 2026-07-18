@@ -3,7 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { WidgetGuide } from '@/components/dashboard/WidgetGuide';
 import type { WidgetGuideContent } from '@/content/dashboardGuides';
 import type { SpendAnalysis } from '@/services/analytics/portfolioAnalytics';
-import { formatCompactINR, formatPercent } from '@/utils/currency';
+import { useCurrency } from '@/hooks/useCurrency';
+import { formatPercent } from '@/utils/currency';
 
 interface Props {
   analysis: SpendAnalysis;
@@ -13,6 +14,7 @@ interface Props {
 const SPEND_COLORS = ['#ef4444', '#f97316', '#eab308', '#84cc16', '#06b6d4', '#8b5cf6', '#64748b'];
 
 export function SpendAnalysisChart({ analysis, guide }: Props) {
+  const { formatCompact } = useCurrency();
   const { categories, totalMonthly, fixedMonthly, discretionaryMonthly, investmentMonthly, savingsRate, surplusMonthly, incomeMonthly } = analysis;
 
   if (totalMonthly === 0) {
@@ -46,15 +48,15 @@ export function SpendAnalysisChart({ analysis, guide }: Props) {
       <CardHeader>
         <CardTitle>Spend Analysis</CardTitle>
         <div className="flex flex-wrap gap-3 text-sm">
-          <span>Monthly: <strong>{formatCompactINR(totalMonthly)}</strong></span>
-          <span>Annual: <strong>{formatCompactINR(analysis.totalAnnual)}</strong></span>
+          <span>Monthly: <strong>{formatCompact(totalMonthly)}</strong></span>
+          <span>Annual: <strong>{formatCompact(analysis.totalAnnual)}</strong></span>
           {savingsRate != null && (
             <span className={savingsRate >= 20 ? 'text-green-600' : 'text-amber-600'}>
               Savings rate: <strong>{formatPercent(savingsRate)}</strong>
             </span>
           )}
           {surplusMonthly != null && incomeMonthly != null && (
-            <span>Surplus: <strong>{formatCompactINR(surplusMonthly)}/mo</strong></span>
+            <span>Surplus: <strong>{formatCompact(surplusMonthly)}/mo</strong></span>
           )}
         </div>
       </CardHeader>
@@ -69,7 +71,7 @@ export function SpendAnalysisChart({ analysis, guide }: Props) {
                     <Cell key={entry.name} fill={entry.color} />
                   ))}
                 </Pie>
-                <Tooltip formatter={(v: number) => formatCompactINR(v)} />
+                <Tooltip formatter={(v: number) => formatCompact(v)} />
                 <Legend wrapperStyle={{ fontSize: 11 }} />
               </PieChart>
             </ResponsiveContainer>
@@ -83,7 +85,7 @@ export function SpendAnalysisChart({ analysis, guide }: Props) {
                     <Cell key={entry.name} fill={entry.color} />
                   ))}
                 </Pie>
-                <Tooltip formatter={(v: number) => formatCompactINR(v)} />
+                <Tooltip formatter={(v: number) => formatCompact(v)} />
                 <Legend wrapperStyle={{ fontSize: 11 }} />
               </PieChart>
             </ResponsiveContainer>

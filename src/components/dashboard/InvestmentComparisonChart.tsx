@@ -3,7 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { WidgetGuide } from '@/components/dashboard/WidgetGuide';
 import type { WidgetGuideContent } from '@/content/dashboardGuides';
 import type { InvestmentComparisonRow } from '@/services/analytics/portfolioAnalytics';
-import { formatCompactINR, formatPercent } from '@/utils/currency';
+import { useCurrency } from '@/hooks/useCurrency';
+import { formatPercent } from '@/utils/currency';
 
 interface Props {
   data: InvestmentComparisonRow[];
@@ -11,6 +12,8 @@ interface Props {
 }
 
 export function InvestmentComparisonChart({ data, guide }: Props) {
+  const { formatCompact } = useCurrency();
+
   if (!data.length) {
     return (
       <Card>
@@ -85,9 +88,9 @@ export function InvestmentComparisonChart({ data, guide }: Props) {
               {data.map((row) => (
                 <tr key={row.type} className="border-b">
                   <td className="p-2">{row.type}</td>
-                  <td className="p-2">{formatCompactINR(row.invested)}</td>
+                  <td className="p-2">{formatCompact(row.invested)}</td>
                   <td className={`p-2 ${row.pnl >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    {formatCompactINR(row.pnl)}
+                    {formatCompact(row.pnl)}
                   </td>
                   <td className="p-2">
                     {row.roiPercent != null

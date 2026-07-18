@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { WidgetGuide } from '@/components/dashboard/WidgetGuide';
 import type { WidgetGuideContent } from '@/content/dashboardGuides';
 import type { AllocationSlice } from '@/services/analytics/netWorth';
-import { formatCompactINR } from '@/utils/currency';
+import { useCurrency } from '@/hooks/useCurrency';
 
 interface Props {
   data: AllocationSlice[];
@@ -11,6 +11,8 @@ interface Props {
 }
 
 export function AssetAllocationChart({ data, guide }: Props) {
+  const { formatCompact } = useCurrency();
+
   if (!data.length) {
     return (
       <Card>
@@ -38,7 +40,7 @@ export function AssetAllocationChart({ data, guide }: Props) {
                 <Cell key={entry.name} fill={entry.color} />
               ))}
             </Pie>
-            <Tooltip formatter={(v: number) => formatCompactINR(v)} />
+            <Tooltip formatter={(v: number) => formatCompact(v)} />
             <Legend />
           </PieChart>
         </ResponsiveContainer>

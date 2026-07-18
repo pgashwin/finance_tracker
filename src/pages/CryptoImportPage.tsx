@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import { formatINR } from '@/utils/currency';
+import { useCurrency } from '@/hooks/useCurrency';
 import {
   parseCoinDcxCsv,
   parseCoinDcxXlsx,
@@ -19,6 +19,7 @@ export function CryptoImportPage() {
   const cryptoHoldings = useFinanceStore((s) => s.state.cryptoHoldings ?? []);
   const setCryptoHoldings = useFinanceStore((s) => s.setCryptoHoldings);
   const showToast = useFinanceStore((s) => s.showToast);
+  const { format } = useCurrency();
   const [preview, setPreview] = useState<ParsedCryptoRow[]>([]);
   const [mode, setMode] = useState<'merge' | 'replace'>('merge');
   const [importType, setImportType] = useState<'holdings' | 'orders'>('holdings');
@@ -121,8 +122,8 @@ export function CryptoImportPage() {
                     <tr key={i} className="border-b">
                       <td className="p-2">{r.symbol}</td>
                       <td className="p-2">{r.quantity}</td>
-                      <td className="p-2">{formatINR(r.averageBuyPrice)}</td>
-                      <td className="p-2">{formatINR(r.currentPrice)}</td>
+                      <td className="p-2">{format(r.averageBuyPrice)}</td>
+                      <td className="p-2">{format(r.currentPrice)}</td>
                     </tr>
                   ))}
                 </tbody>

@@ -28,6 +28,17 @@ const navItems = [
   { to: '/settings', label: 'Settings', icon: Settings },
 ];
 
+const mobileNavLabels: Record<string, string> = {
+  Dashboard: 'Home',
+  'Liquid Funds': 'Liquid',
+  'Fixed Deposits': 'FDs',
+  'PPF / PF': 'PPF/PF',
+};
+
+function mobileNavLabel(label: string): string {
+  return mobileNavLabels[label] ?? label.split(' ')[0] ?? label;
+}
+
 export function Sidebar() {
   return (
     <aside className="hidden w-56 shrink-0 border-r bg-card md:block">
@@ -55,24 +66,28 @@ export function Sidebar() {
 }
 
 export function MobileNav() {
-  const primary = navItems.slice(0, 5);
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 flex border-t bg-card md:hidden">
-      {primary.map(({ to, label, icon: Icon }) => (
-        <NavLink
-          key={to}
-          to={to}
-          className={({ isActive }) =>
-            cn(
-              'flex flex-1 flex-col items-center gap-1 py-2 text-xs',
-              isActive ? 'text-primary' : 'text-muted-foreground',
-            )
-          }
-        >
-          <Icon className="h-5 w-5" />
-          <span>{label.split(' ')[0]}</span>
-        </NavLink>
-      ))}
+    <nav
+      className="fixed bottom-0 left-0 right-0 z-40 border-t bg-card pb-[env(safe-area-inset-bottom)] md:hidden"
+      aria-label="Main navigation"
+    >
+      <div className="flex overflow-x-auto overscroll-x-contain [-webkit-overflow-scrolling:touch] scrollbar-hide">
+        {navItems.map(({ to, label, icon: Icon }) => (
+          <NavLink
+            key={to}
+            to={to}
+            className={({ isActive }) =>
+              cn(
+                'flex min-w-[4.25rem] shrink-0 flex-col items-center gap-1 px-2 py-2 text-xs',
+                isActive ? 'text-primary' : 'text-muted-foreground',
+              )
+            }
+          >
+            <Icon className="h-5 w-5 shrink-0" />
+            <span className="max-w-[4.5rem] truncate text-center">{mobileNavLabel(label)}</span>
+          </NavLink>
+        ))}
+      </div>
     </nav>
   );
 }

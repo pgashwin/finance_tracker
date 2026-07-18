@@ -6,8 +6,11 @@ import { Modal } from '@/components/ui/modal';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
-import { formatINR, toMonthlyEquivalent } from '@/utils/currency';
-import type { RecurringExpense, RecurringCategory, RecurrenceFrequency } from '@/types';
+import { CurrencySelect } from '@/components/ui/currency-select';
+import { useCurrency } from '@/hooks/useCurrency';
+import { toMonthlyEquivalent } from '@/utils/currency';
+import { emiMonthlyTotal, monthlyOutflow } from '@/services/analytics/netWorth';
+import type { CurrencyCode, RecurringExpense, RecurringCategory, RecurrenceFrequency } from '@/types';
 import { BucketTotalBar } from '@/components/ui/bucket-total-bar';
 import { todayDate } from '@/utils/ids';
 import { Pencil, Plus, Trash2 } from 'lucide-react';
@@ -16,26 +19,29 @@ const categories: RecurringCategory[] = ['emi', 'subscription', 'insurance_premi
 const frequencies: RecurrenceFrequency[] = ['monthly', 'quarterly', 'half_yearly', 'yearly'];
 
 export function RecurringPage() {
-  const items = useFinanceStore((s) => s.state.recurringExpenses);
+  const state = useFinanceStore((s) => s.state);
+  const items = state.recurringExpenses;
   const add = useFinanceStore((s) => s.addRecurringExpense);
   const update = useFinanceStore((s) => s.updateRecurringExpense);
   const remove = useFinanceStore((s) => s.deleteRecurringExpense);
+  const { format, baseCurrency, symbol } = useCurrency();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<RecurringExpense | null>(null);
 
   const emptyForm = {
     name: '', category: 'emi' as RecurringCategory, amount: '', frequency: 'monthly' as RecurrenceFrequency,
-    startDate: todayDate(), endDate: '', autoDebit: true, isActive: true,
+    startDate: todayDate(), endDate: '', autoDebit: true, isActive: true, currency: baseCurrency,
   };
   const [form, setForm] = useState(emptyForm);
 
-  const openNew = () => { setEditing(null); setForm(emptyForm); setOpen(true); };
+  const openNew = () => { setEditing(null); setForm({ ...emptyForm, currency: baseCurrency }); setOpen(true); };
   const openEdit = (item: RecurringExpense) => {
     setEditing(item);
     setForm({
       name: item.name, category: item.category, amount: String(item.amount),
       frequency: item.frequency, startDate: item.startDate, endDate: item.endDate ?? '',
       autoDebit: item.autoDebit, isActive: item.isActive,
+      currency: item.currency ?? baseCurrency,
     });
     setOpen(true);
   };
@@ -46,6 +52,7 @@ export function RecurringPage() {
       name: form.name, category: form.category, amount: parseFloat(form.amount) || 0,
       frequency: form.frequency, startDate: form.startDate, endDate: form.endDate || undefined,
       autoDebit: form.autoDebit, isActive: form.isActive,
+      ...(form.currency !== baseCurrency ? { currency: form.currency as CurrencyCode } : {}),
     };
     if (editing) update(editing.id, data);
     else add(data);
@@ -53,13 +60,8 @@ export function RecurringPage() {
   };
 
   const activeItems = items.filter((i) => i.isActive);
-  const monthlyTotal = activeItems.reduce(
-    (s, i) => s + toMonthlyEquivalent(i.amount, i.frequency),
-    0,
-  );
-  const emiMonthly = activeItems
-    .filter((i) => i.category === 'emi')
-    .reduce((s, i) => s + toMonthlyEquivalent(i.amount, i.frequency), 0);
+  const monthlyTotal = monthlyOutflow(state);
+  const emiMonthly = emiMonthlyTotal(state);
 
   return (
     <div className="space-y-4">
@@ -72,12 +74,12 @@ export function RecurringPage() {
           stats={[
             {
               label: 'Monthly outflow',
-              value: formatINR(monthlyTotal),
+              value: format(monthlyTotal),
               sub: `${activeItems.length} active · ${items.length} total`,
               variant: 'negative',
             },
-            { label: 'Annual outflow', value: formatINR(monthlyTotal * 12) },
-            { label: 'EMI (monthly)', value: formatINR(emiMonthly), sub: 'EMI category only' },
+            { label: 'Annual outflow', value: format(monthlyTotal * 12) },
+            { label: 'EMI (monthly)', value: format(emiMonthly), sub: 'EMI category only' },
           ]}
         />
       )}
@@ -91,11 +93,11 @@ export function RecurringPage() {
                 <div>
                   <p className="font-medium">{item.name} {!item.isActive && <span className="text-xs">(inactive)</span>}</p>
                   <p className="text-sm text-muted-foreground">
-                    {item.category.replace(/_/g, ' ')} · {item.frequency} · ~{formatINR(toMonthlyEquivalent(item.amount, item.frequency))}/mo
+                    {item.category.replace(/_/g, ' ')} · {item.frequency} · ~{format(toMonthlyEquivalent(item.amount, item.frequency), item.currency)}/mo
                   </p>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="font-semibold">{formatINR(item.amount)}</span>
+                  <span className="font-semibold">{format(item.amount, item.currency)}</span>
                   <Button variant="ghost" size="icon" onClick={() => openEdit(item)}><Pencil className="h-4 w-4" /></Button>
                   <Button variant="ghost" size="icon" onClick={() => remove(item.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
                 </div>
@@ -113,7 +115,11 @@ export function RecurringPage() {
               {categories.map((c) => <option key={c} value={c}>{c.replace(/_/g, ' ')}</option>)}
             </Select>
           </div>
-          <div><Label>Amount (₹)</Label><Input type="number" min="0" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} required /></div>
+          <div><Label>Amount ({symbol})</Label><Input type="number" min="0" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} required /></div>
+          <div>
+            <Label>Currency</Label>
+            <CurrencySelect value={form.currency} onChange={(currency) => setForm({ ...form, currency })} />
+          </div>
           <div>
             <Label>Frequency</Label>
             <Select value={form.frequency} onChange={(e) => setForm({ ...form, frequency: e.target.value as RecurrenceFrequency })}>

@@ -1,3 +1,7 @@
+import type { CurrencyCode } from '@/constants/currencies';
+
+export type { CurrencyCode };
+
 export type RecurrenceFrequency = 'monthly' | 'quarterly' | 'half_yearly' | 'yearly';
 
 export type RecurringCategory =
@@ -28,6 +32,7 @@ export interface LiquidFund extends BaseEntity {
   name: string;
   institution?: string;
   balance: number;
+  currency?: CurrencyCode;
   accountNumber?: string;
   isEmergencyFund: boolean;
 }
@@ -37,6 +42,7 @@ export interface FixedDeposit extends BaseEntity {
   name: string;
   institution: string;
   principal: number;
+  currency?: CurrencyCode;
   interestRate: number;
   startDate: string;
   maturityDate: string;
@@ -53,6 +59,7 @@ export interface Holding extends BaseEntity {
   quantity: number;
   averagePrice: number;
   currentPrice: number;
+  currency?: CurrencyCode;
   lastUpdated: string;
   broker: 'zerodha' | 'other';
   folioNumber?: string;
@@ -68,7 +75,7 @@ export interface CryptoHolding extends BaseEntity {
   currentPrice: number;
   lastUpdated: string;
   exchange: 'coindcx' | 'other';
-  quoteCurrency: 'INR';
+  quoteCurrency: CurrencyCode;
 }
 
 export interface RecurringExpense extends BaseEntity {
@@ -76,6 +83,7 @@ export interface RecurringExpense extends BaseEntity {
   name: string;
   category: RecurringCategory;
   amount: number;
+  currency?: CurrencyCode;
   frequency: RecurrenceFrequency;
   startDate: string;
   endDate?: string;
@@ -91,6 +99,7 @@ export interface Loan extends BaseEntity {
   lender: string;
   principal: number;
   outstandingBalance: number;
+  currency?: CurrencyCode;
   interestRate: number;
   emiAmount: number;
   tenureMonths: number;
@@ -105,6 +114,7 @@ export interface InsurancePolicy extends BaseEntity {
   policyNumber?: string;
   insuranceType: InsuranceType;
   sumAssured: number;
+  currency?: CurrencyCode;
   annualPremium: number;
   premiumFrequency: RecurrenceFrequency;
   startDate: string;
@@ -119,6 +129,7 @@ export interface RetirementAccount extends BaseEntity {
   name: string;
   accountNumber?: string;
   currentBalance: number;
+  currency?: CurrencyCode;
   annualContribution?: number;
   employerContribution?: number;
   interestRate?: number;
@@ -132,6 +143,7 @@ export interface Asset extends BaseEntity {
   category: AssetCategory;
   purchasePrice: number;
   currentEstimatedValue: number;
+  currency?: CurrencyCode;
   purchaseDate: string;
   lastValuationDate: string;
   linkedLoanId?: string;
@@ -140,15 +152,18 @@ export interface Asset extends BaseEntity {
 
 export interface UserProfile {
   displayName?: string;
-  baseCurrency: 'INR';
+  baseCurrency: CurrencyCode;
   monthlyIncome?: number;
   financialYearStart: 'april';
 }
+
+export type ExchangeRates = Partial<Record<CurrencyCode, number>>;
 
 export interface AppSettings {
   theme: 'light' | 'dark' | 'system';
   defaultDashboardPeriod: 'monthly' | 'yearly';
   showCents: boolean;
+  exchangeRates: ExchangeRates;
 }
 
 export interface MonthlySnapshot {
@@ -183,5 +198,5 @@ export interface Insight {
   actionRoute?: string;
 }
 
-export const SCHEMA_VERSION = 2;
+export const SCHEMA_VERSION = 3;
 export const APP_VERSION = '1.0.0';

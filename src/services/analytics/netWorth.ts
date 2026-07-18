@@ -1,5 +1,5 @@
-import type { FinanceState, Holding, CryptoHolding, MonthlySnapshot, RecurringExpense } from '@/types';
-import { toMonthlyEquivalent } from '@/utils/currency';
+import type { AssetCategory, FinanceState, Holding, CryptoHolding, MonthlySnapshot, RecurringExpense } from '@/types';
+import { entityAmountInBase, toMonthlyEquivalent } from '@/utils/currency';
 
 export function holdingInvestedValue(h: Holding): number {
   return h.quantity * h.averagePrice;
@@ -26,29 +26,89 @@ export function cryptoGainLoss(h: CryptoHolding): number {
 }
 
 export function totalCryptoValue(state: FinanceState): number {
-  return (state.cryptoHoldings ?? []).reduce((sum, h) => sum + cryptoCurrentValue(h), 0);
+  return (state.cryptoHoldings ?? []).reduce(
+    (sum, h) => sum + entityAmountInBase(cryptoCurrentValue(h), h.quoteCurrency, state),
+    0,
+  );
+}
+
+export const ASSET_CATEGORY_LABELS: Record<AssetCategory, string> = {
+  real_estate: 'Real Estate',
+  vehicle: 'Vehicle',
+  gold: 'Gold',
+  jewelry: 'Jewelry',
+  other: 'Other Assets',
+};
+
+export const ASSET_CATEGORY_COLORS: Record<AssetCategory, string> = {
+  real_estate: '#ef4444',
+  vehicle: '#6366f1',
+  gold: '#eab308',
+  jewelry: '#ec4899',
+  other: '#6b7280',
+};
+
+export interface AssetCategoryTotals {
+  category: AssetCategory;
+  label: string;
+  invested: number;
+  current: number;
+  color: string;
+}
+
+export function physicalAssetsByCategory(state: FinanceState): AssetCategoryTotals[] {
+  const map = new Map<AssetCategory, { invested: number; current: number }>();
+  for (const asset of state.assets) {
+    const totals = map.get(asset.category) ?? { invested: 0, current: 0 };
+    totals.invested += entityAmountInBase(asset.purchasePrice, asset.currency, state);
+    totals.current += entityAmountInBase(asset.currentEstimatedValue, asset.currency, state);
+    map.set(asset.category, totals);
+  }
+
+  return Array.from(map.entries())
+    .filter(([, totals]) => totals.current > 0 || totals.invested > 0)
+    .map(([category, totals]) => ({
+      category,
+      label: ASSET_CATEGORY_LABELS[category],
+      invested: totals.invested,
+      current: totals.current,
+      color: ASSET_CATEGORY_COLORS[category],
+    }))
+    .sort((a, b) => b.current - a.current);
 }
 
 export function totalLiquidAssets(state: FinanceState): number {
-  return state.liquidFunds.reduce((sum, f) => sum + f.balance, 0);
+  return state.liquidFunds.reduce(
+    (sum, f) => sum + entityAmountInBase(f.balance, f.currency, state),
+    0,
+  );
 }
 
 export function totalEmergencyFund(state: FinanceState): number {
   return state.liquidFunds
     .filter((f) => f.isEmergencyFund)
-    .reduce((sum, f) => sum + f.balance, 0);
+    .reduce((sum, f) => sum + entityAmountInBase(f.balance, f.currency, state), 0);
 }
 
 export function totalFixedDeposits(state: FinanceState): number {
-  return state.fixedDeposits.reduce((sum, fd) => sum + fd.principal, 0);
+  return state.fixedDeposits.reduce(
+    (sum, fd) => sum + entityAmountInBase(fd.principal, fd.currency, state),
+    0,
+  );
 }
 
 export function totalHoldingsValue(state: FinanceState): number {
-  return state.holdings.reduce((sum, h) => sum + holdingCurrentValue(h), 0);
+  return state.holdings.reduce(
+    (sum, h) => sum + entityAmountInBase(holdingCurrentValue(h), h.currency, state),
+    0,
+  );
 }
 
 export function totalRetirement(state: FinanceState): number {
-  return state.retirementAccounts.reduce((sum, a) => sum + a.currentBalance, 0);
+  return state.retirementAccounts.reduce(
+    (sum, a) => sum + entityAmountInBase(a.currentBalance, a.currency, state),
+    0,
+  );
 }
 
 export function totalAssetsValue(state: FinanceState): number {
@@ -58,12 +118,18 @@ export function totalAssetsValue(state: FinanceState): number {
     totalHoldingsValue(state) +
     totalCryptoValue(state) +
     totalRetirement(state) +
-    state.assets.reduce((sum, a) => sum + a.currentEstimatedValue, 0)
+    state.assets.reduce(
+      (sum, a) => sum + entityAmountInBase(a.currentEstimatedValue, a.currency, state),
+      0,
+    )
   );
 }
 
 export function totalLiabilities(state: FinanceState): number {
-  return state.loans.reduce((sum, l) => sum + l.outstandingBalance, 0);
+  return state.loans.reduce(
+    (sum, l) => sum + entityAmountInBase(l.outstandingBalance, l.currency, state),
+    0,
+  );
 }
 
 export function netWorth(state: FinanceState): number {
@@ -79,7 +145,9 @@ export function activeRecurringExpenses(state: FinanceState): RecurringExpense[]
 
 export function monthlyOutflow(state: FinanceState): number {
   return activeRecurringExpenses(state).reduce(
-    (sum, e) => sum + toMonthlyEquivalent(e.amount, e.frequency),
+    (sum, e) =>
+      sum +
+      entityAmountInBase(toMonthlyEquivalent(e.amount, e.frequency), e.currency, state),
     0,
   );
 }
@@ -87,7 +155,12 @@ export function monthlyOutflow(state: FinanceState): number {
 export function emiMonthlyTotal(state: FinanceState): number {
   return activeRecurringExpenses(state)
     .filter((e) => e.category === 'emi')
-    .reduce((sum, e) => sum + toMonthlyEquivalent(e.amount, e.frequency), 0);
+    .reduce(
+      (sum, e) =>
+        sum +
+        entityAmountInBase(toMonthlyEquivalent(e.amount, e.frequency), e.currency, state),
+      0,
+    );
 }
 
 export function liquidityRatio(state: FinanceState): number {
@@ -117,7 +190,7 @@ export function emergencyFundMonths(state: FinanceState): number | null {
 export function termInsuranceCoverage(state: FinanceState): number {
   return state.insurancePolicies
     .filter((p) => p.isActive && p.insuranceType === 'term')
-    .reduce((sum, p) => sum + p.sumAssured, 0);
+    .reduce((sum, p) => sum + entityAmountInBase(p.sumAssured, p.currency, state), 0);
 }
 
 export function insuranceCoverageRatio(state: FinanceState): number | null {
@@ -129,8 +202,20 @@ export function insuranceCoverageRatio(state: FinanceState): number | null {
 }
 
 export function unrealizedPnL(state: FinanceState): number {
-  const equityPnl = state.holdings.reduce((sum, h) => sum + holdingGainLoss(h), 0);
-  const cryptoPnl = (state.cryptoHoldings ?? []).reduce((sum, h) => sum + cryptoGainLoss(h), 0);
+  const equityPnl = state.holdings.reduce(
+    (sum, h) =>
+      sum +
+      entityAmountInBase(holdingCurrentValue(h), h.currency, state) -
+      entityAmountInBase(holdingInvestedValue(h), h.currency, state),
+    0,
+  );
+  const cryptoPnl = (state.cryptoHoldings ?? []).reduce(
+    (sum, h) =>
+      sum +
+      entityAmountInBase(cryptoCurrentValue(h), h.quoteCurrency, state) -
+      entityAmountInBase(cryptoInvestedValue(h), h.quoteCurrency, state),
+    0,
+  );
   return equityPnl + cryptoPnl;
 }
 
@@ -146,7 +231,6 @@ const ALLOCATION_COLORS: Record<string, string> = {
   Equity: '#10b981',
   Crypto: '#06b6d4',
   'PPF / PF': '#f59e0b',
-  'Real Estate & Assets': '#ef4444',
   Other: '#6b7280',
 };
 
@@ -156,7 +240,6 @@ export function assetAllocation(state: FinanceState): AllocationSlice[] {
   const equity = totalHoldingsValue(state);
   const crypto = totalCryptoValue(state);
   const retirement = totalRetirement(state);
-  const physical = state.assets.reduce((sum, a) => sum + a.currentEstimatedValue, 0);
 
   const slices: AllocationSlice[] = [
     { name: 'Liquid', value: liquid, color: ALLOCATION_COLORS.Liquid! },
@@ -164,7 +247,11 @@ export function assetAllocation(state: FinanceState): AllocationSlice[] {
     { name: 'Equity', value: equity, color: ALLOCATION_COLORS.Equity! },
     { name: 'Crypto', value: crypto, color: ALLOCATION_COLORS.Crypto! },
     { name: 'PPF / PF', value: retirement, color: ALLOCATION_COLORS['PPF / PF']! },
-    { name: 'Real Estate & Assets', value: physical, color: ALLOCATION_COLORS['Real Estate & Assets']! },
+    ...physicalAssetsByCategory(state).map((cat) => ({
+      name: cat.label,
+      value: cat.current,
+      color: cat.color,
+    })),
   ].filter((s) => s.value > 0);
 
   return slices;
@@ -178,7 +265,11 @@ export interface RecurringBreakdown {
 export function recurringByCategory(state: FinanceState): RecurringBreakdown[] {
   const map = new Map<string, number>();
   for (const e of activeRecurringExpenses(state)) {
-    const monthly = toMonthlyEquivalent(e.amount, e.frequency);
+    const monthly = entityAmountInBase(
+      toMonthlyEquivalent(e.amount, e.frequency),
+      e.currency,
+      state,
+    );
     map.set(e.category, (map.get(e.category) ?? 0) + monthly);
   }
   return Array.from(map.entries())
@@ -204,7 +295,7 @@ export function upcomingMaturities(state: FinanceState, withinDays = 90): Maturi
       items.push({
         name: fd.name,
         date: fd.maturityDate,
-        amount: fd.maturityAmount ?? fd.principal,
+        amount: entityAmountInBase(fd.maturityAmount ?? fd.principal, fd.currency, state),
         type: 'Fixed Deposit',
       });
     }

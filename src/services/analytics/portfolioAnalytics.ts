@@ -5,6 +5,7 @@ import {
   holdingCurrentValue,
   holdingInvestedValue,
   monthlyOutflow,
+  physicalAssetsByCategory,
   totalAssetsValue,
   totalFixedDeposits,
   totalHoldingsValue,
@@ -14,7 +15,7 @@ import {
   totalRetirement,
   activeRecurringExpenses,
 } from './netWorth';
-import { toMonthlyEquivalent } from '@/utils/currency';
+import { toMonthlyEquivalent, entityAmountInBase } from '@/utils/currency';
 
 export const BUCKET_COLORS: Record<string, string> = {
   Liquid: '#3b82f6',
@@ -22,7 +23,6 @@ export const BUCKET_COLORS: Record<string, string> = {
   Equity: '#10b981',
   Crypto: '#06b6d4',
   'PPF / PF': '#f59e0b',
-  'Real Estate & Assets': '#ef4444',
   Debt: '#dc2626',
 };
 
@@ -82,27 +82,59 @@ function roiPercent(invested: number, pnl: number): number | null {
 }
 
 function sumHoldingsInvested(state: FinanceState): number {
-  return state.holdings.reduce((s, h) => s + holdingInvestedValue(h), 0);
+  return state.holdings.reduce(
+    (s, h) => s + entityAmountInBase(holdingInvestedValue(h), h.currency, state),
+    0,
+  );
 }
 
 function sumHoldingsCurrent(state: FinanceState): number {
-  return state.holdings.reduce((s, h) => s + holdingCurrentValue(h), 0);
+  return state.holdings.reduce(
+    (s, h) => s + entityAmountInBase(holdingCurrentValue(h), h.currency, state),
+    0,
+  );
 }
 
 function sumCryptoInvested(state: FinanceState): number {
-  return (state.cryptoHoldings ?? []).reduce((s, h) => s + cryptoInvestedValue(h), 0);
+  return (state.cryptoHoldings ?? []).reduce(
+    (s, h) => s + entityAmountInBase(cryptoInvestedValue(h), h.quoteCurrency, state),
+    0,
+  );
 }
 
 function sumCryptoCurrent(state: FinanceState): number {
-  return (state.cryptoHoldings ?? []).reduce((s, h) => s + cryptoCurrentValue(h), 0);
+  return (state.cryptoHoldings ?? []).reduce(
+    (s, h) => s + entityAmountInBase(cryptoCurrentValue(h), h.quoteCurrency, state),
+    0,
+  );
 }
 
 function sumPhysicalInvested(state: FinanceState): number {
-  return state.assets.reduce((s, a) => s + a.purchasePrice, 0);
+  return state.assets.reduce(
+    (s, a) => s + entityAmountInBase(a.purchasePrice, a.currency, state),
+    0,
+  );
 }
 
 function sumPhysicalCurrent(state: FinanceState): number {
-  return state.assets.reduce((s, a) => s + a.currentEstimatedValue, 0);
+  return state.assets.reduce(
+    (s, a) => s + entityAmountInBase(a.currentEstimatedValue, a.currency, state),
+    0,
+  );
+}
+
+function physicalAssetPnLSlices(state: FinanceState): PnLSlice[] {
+  return physicalAssetsByCategory(state).map((cat) => {
+    const pnl = cat.current - cat.invested;
+    return {
+      name: cat.label,
+      invested: cat.invested,
+      current: cat.current,
+      pnl,
+      pnlPercent: roiPercent(cat.invested, pnl),
+      color: cat.color,
+    };
+  });
 }
 
 export function pnlBreakdown(state: FinanceState): PnLSlice[] {
@@ -139,20 +171,13 @@ export function pnlBreakdown(state: FinanceState): PnLSlice[] {
   const physicalInvested = sumPhysicalInvested(state);
   const physicalCurrent = sumPhysicalCurrent(state);
   if (physicalInvested > 0 || physicalCurrent > 0) {
-    const pnl = physicalCurrent - physicalInvested;
-    slices.push({
-      name: 'Real Estate & Assets',
-      invested: physicalInvested,
-      current: physicalCurrent,
-      pnl,
-      pnlPercent: roiPercent(physicalInvested, pnl),
-      color: BUCKET_COLORS['Real Estate & Assets']!,
-    });
+    slices.push(...physicalAssetPnLSlices(state));
   }
 
   const fdPrincipal = totalFixedDeposits(state);
   const fdMaturity = state.fixedDeposits.reduce(
-    (s, fd) => s + (fd.maturityAmount ?? fd.principal),
+    (s, fd) =>
+      s + entityAmountInBase(fd.maturityAmount ?? fd.principal, fd.currency, state),
     0,
   );
   if (fdPrincipal > 0) {
@@ -215,14 +240,14 @@ export function financeBucketsSummary(state: FinanceState): FinanceBucketRow[] {
       pnl: 0,
       color: BUCKET_COLORS['PPF / PF']!,
     },
-    {
-      bucket: 'Real Estate & Assets',
-      currentValue: sumPhysicalCurrent(state),
-      investedBasis: sumPhysicalInvested(state),
+    ...physicalAssetsByCategory(state).map((cat) => ({
+      bucket: cat.label,
+      currentValue: cat.current,
+      investedBasis: cat.invested,
       percentOfAssets: 0,
-      pnl: sumPhysicalCurrent(state) - sumPhysicalInvested(state),
-      color: BUCKET_COLORS['Real Estate & Assets']!,
-    },
+      pnl: cat.current - cat.invested,
+      color: cat.color,
+    })),
   ]
     .filter((b) => b.currentValue > 0)
     .map((b) => ({
@@ -241,7 +266,11 @@ export function spendAnalysis(state: FinanceState): SpendAnalysis {
   let investmentMonthly = 0;
 
   for (const e of activeRecurringExpenses(state)) {
-    const monthly = toMonthlyEquivalent(e.amount, e.frequency);
+    const monthly = entityAmountInBase(
+      toMonthlyEquivalent(e.amount, e.frequency),
+      e.currency,
+      state,
+    );
     if (FIXED_CATEGORIES.has(e.category)) fixedMonthly += monthly;
     else if (INVESTMENT_CATEGORIES.has(e.category)) investmentMonthly += monthly;
     else discretionaryMonthly += monthly;
@@ -250,7 +279,11 @@ export function spendAnalysis(state: FinanceState): SpendAnalysis {
   const totalMonthly = monthlyOutflow(state);
   const map = new Map<string, number>();
   for (const e of activeRecurringExpenses(state)) {
-    const monthly = toMonthlyEquivalent(e.amount, e.frequency);
+    const monthly = entityAmountInBase(
+      toMonthlyEquivalent(e.amount, e.frequency),
+      e.currency,
+      state,
+    );
     map.set(e.category, (map.get(e.category) ?? 0) + monthly);
   }
 
@@ -299,8 +332,8 @@ export function investmentTypeComparison(state: FinanceState): InvestmentCompari
             ? 'ETFs'
             : 'Bonds';
     const cur = byInstrument.get(key) ?? { invested: 0, current: 0 };
-    cur.invested += holdingInvestedValue(h);
-    cur.current += holdingCurrentValue(h);
+    cur.invested += entityAmountInBase(holdingInvestedValue(h), h.currency, state);
+    cur.current += entityAmountInBase(holdingCurrentValue(h), h.currency, state);
     byInstrument.set(key, cur);
   }
   for (const [type, v] of byInstrument.entries()) {
@@ -332,16 +365,18 @@ export function investmentTypeComparison(state: FinanceState): InvestmentCompari
 
   const physicalInvested = sumPhysicalInvested(state);
   if (physicalInvested > 0) {
-    const physicalCurrent = sumPhysicalCurrent(state);
-    const pnl = physicalCurrent - physicalInvested;
-    rows.push({
-      type: 'Real Estate',
-      invested: physicalInvested,
-      current: physicalCurrent,
-      pnl,
-      roiPercent: roiPercent(physicalInvested, pnl),
-      color: BUCKET_COLORS['Real Estate & Assets']!,
-    });
+    for (const cat of physicalAssetsByCategory(state)) {
+      if (cat.invested <= 0) continue;
+      const pnl = cat.current - cat.invested;
+      rows.push({
+        type: cat.label,
+        invested: cat.invested,
+        current: cat.current,
+        pnl,
+        roiPercent: roiPercent(cat.invested, pnl),
+        color: cat.color,
+      });
+    }
   }
 
   const fdPrincipal = totalFixedDeposits(state);
@@ -392,7 +427,11 @@ export function assetsVsLiabilitiesSummary(state: FinanceState) {
 export function debtByType(state: FinanceState) {
   const map = new Map<string, number>();
   for (const loan of state.loans) {
-    map.set(loan.loanType, (map.get(loan.loanType) ?? 0) + loan.outstandingBalance);
+    map.set(
+      loan.loanType,
+      (map.get(loan.loanType) ?? 0) +
+        entityAmountInBase(loan.outstandingBalance, loan.currency, state),
+    );
   }
   return Array.from(map.entries())
     .map(([type, amount]) => ({

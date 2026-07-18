@@ -2,7 +2,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { WidgetGuide } from '@/components/dashboard/WidgetGuide';
 import type { WidgetGuideContent } from '@/content/dashboardGuides';
-import { formatCompactINR } from '@/utils/currency';
+import { useCurrency } from '@/hooks/useCurrency';
 
 interface Props {
   income: number | null;
@@ -13,6 +13,8 @@ interface Props {
 }
 
 export function CashFlowChart({ income, expenses, surplus, investmentSip, guide }: Props) {
+  const { formatCompact } = useCurrency();
+
   if (income == null) {
     return (
       <Card>
@@ -24,7 +26,7 @@ export function CashFlowChart({ income, expenses, surplus, investmentSip, guide 
             Set monthly income in Settings to see income vs expenses breakdown.
           </p>
           <p className="mt-2 text-sm">
-            Current monthly outflow: <strong>{formatCompactINR(expenses)}</strong>
+            Current monthly outflow: <strong>{formatCompact(expenses)}</strong>
           </p>
           {guide && <WidgetGuide guide={guide} />}
         </CardContent>
@@ -46,7 +48,7 @@ export function CashFlowChart({ income, expenses, surplus, investmentSip, guide 
         <p className="text-sm text-muted-foreground">
           Surplus after recurring expenses:{' '}
           <strong className={(surplus ?? 0) >= 0 ? 'text-green-600' : 'text-red-600'}>
-            {formatCompactINR(surplus ?? 0)}
+            {formatCompact(surplus ?? 0)}
           </strong>
         </p>
       </CardHeader>
@@ -55,8 +57,8 @@ export function CashFlowChart({ income, expenses, surplus, investmentSip, guide 
           <BarChart data={chartData}>
             <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
             <XAxis dataKey="name" tick={{ fontSize: 11 }} />
-            <YAxis tickFormatter={(v) => formatCompactINR(v)} width={72} />
-            <Tooltip formatter={(v: number) => formatCompactINR(v)} />
+            <YAxis tickFormatter={(v) => formatCompact(v)} width={72} />
+            <Tooltip formatter={(v: number) => formatCompact(v)} />
             <Bar dataKey="value" name="Amount" radius={[4, 4, 0, 0]}>
               {chartData.map((entry) => (
                 <Cell key={entry.name} fill={entry.color} />

@@ -5,17 +5,22 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Modal } from '@/components/ui/modal';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { formatINR, formatDate, formatPercent } from '@/utils/currency';
-import type { FixedDeposit } from '@/types';
+import { CurrencySelect } from '@/components/ui/currency-select';
+import { useCurrency } from '@/hooks/useCurrency';
+import { formatDate, formatPercent } from '@/utils/currency';
+import { totalFixedDeposits } from '@/services/analytics/netWorth';
+import type { CurrencyCode, FixedDeposit } from '@/types';
 import { BucketTotalBar } from '@/components/ui/bucket-total-bar';
 import { todayDate } from '@/utils/ids';
 import { Pencil, Plus, Trash2 } from 'lucide-react';
 
 export function FixedDepositsPage() {
-  const items = useFinanceStore((s) => s.state.fixedDeposits);
+  const state = useFinanceStore((s) => s.state);
+  const items = state.fixedDeposits;
   const add = useFinanceStore((s) => s.addFixedDeposit);
   const update = useFinanceStore((s) => s.updateFixedDeposit);
   const remove = useFinanceStore((s) => s.deleteFixedDeposit);
+  const { format, baseCurrency, symbol } = useCurrency();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<FixedDeposit | null>(null);
 
@@ -28,12 +33,13 @@ export function FixedDepositsPage() {
     maturityDate: '',
     autoRenew: false,
     taxDeductedAtSource: true,
+    currency: baseCurrency,
   };
   const [form, setForm] = useState(emptyForm);
 
   const openNew = () => {
     setEditing(null);
-    setForm(emptyForm);
+    setForm({ ...emptyForm, currency: baseCurrency });
     setOpen(true);
   };
 
@@ -48,6 +54,7 @@ export function FixedDepositsPage() {
       maturityDate: item.maturityDate,
       autoRenew: item.autoRenew,
       taxDeductedAtSource: item.taxDeductedAtSource,
+      currency: item.currency ?? baseCurrency,
     });
     setOpen(true);
   };
@@ -63,16 +70,18 @@ export function FixedDepositsPage() {
       maturityDate: form.maturityDate,
       autoRenew: form.autoRenew,
       taxDeductedAtSource: form.taxDeductedAtSource,
+      ...(form.currency !== baseCurrency ? { currency: form.currency as CurrencyCode } : {}),
     };
     if (editing) update(editing.id, data);
     else add(data);
     setOpen(false);
   };
 
-  const totalPrincipal = items.reduce((s, i) => s + i.principal, 0);
+  const totalPrincipal = totalFixedDeposits(state);
   const avgRate =
-    totalPrincipal > 0
-      ? items.reduce((s, i) => s + i.interestRate * i.principal, 0) / totalPrincipal
+    items.reduce((s, i) => s + i.principal, 0) > 0
+      ? items.reduce((s, i) => s + i.interestRate * i.principal, 0) /
+        items.reduce((s, i) => s + i.principal, 0)
       : 0;
 
   return (
@@ -84,7 +93,7 @@ export function FixedDepositsPage() {
       {items.length > 0 && (
         <BucketTotalBar
           stats={[
-            { label: 'Total principal', value: formatINR(totalPrincipal), sub: `${items.length} FD(s)` },
+            { label: 'Total principal', value: format(totalPrincipal), sub: `${items.length} FD(s)` },
             { label: 'Avg interest rate', value: formatPercent(avgRate), sub: 'Weighted by principal' },
           ]}
         />
@@ -103,7 +112,7 @@ export function FixedDepositsPage() {
                   </p>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="font-semibold">{formatINR(item.principal)}</span>
+                  <span className="font-semibold">{format(item.principal, item.currency)}</span>
                   <Button variant="ghost" size="icon" onClick={() => openEdit(item)}><Pencil className="h-4 w-4" /></Button>
                   <Button variant="ghost" size="icon" onClick={() => remove(item.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
                 </div>
@@ -116,7 +125,11 @@ export function FixedDepositsPage() {
         <form onSubmit={submit} className="space-y-4">
           <div><Label>Name</Label><Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required /></div>
           <div><Label>Institution</Label><Input value={form.institution} onChange={(e) => setForm({ ...form, institution: e.target.value })} required /></div>
-          <div><Label>Principal (₹)</Label><Input type="number" min="0" value={form.principal} onChange={(e) => setForm({ ...form, principal: e.target.value })} required /></div>
+          <div><Label>Principal ({symbol})</Label><Input type="number" min="0" value={form.principal} onChange={(e) => setForm({ ...form, principal: e.target.value })} required /></div>
+          <div>
+            <Label>Currency</Label>
+            <CurrencySelect value={form.currency} onChange={(currency) => setForm({ ...form, currency })} />
+          </div>
           <div><Label>Interest Rate (% p.a.)</Label><Input type="number" min="0" step="0.01" value={form.interestRate} onChange={(e) => setForm({ ...form, interestRate: e.target.value })} required /></div>
           <div><Label>Start Date</Label><Input type="date" value={form.startDate} onChange={(e) => setForm({ ...form, startDate: e.target.value })} required /></div>
           <div><Label>Maturity Date</Label><Input type="date" value={form.maturityDate} onChange={(e) => setForm({ ...form, maturityDate: e.target.value })} required /></div>

@@ -1,5 +1,8 @@
 import { z } from 'zod';
 import { APP_VERSION, SCHEMA_VERSION } from '@/types';
+import { CURRENCY_CODES } from '@/constants/currencies';
+
+const currencyCodeSchema = z.enum(CURRENCY_CODES);
 
 const baseEntitySchema = z.object({
   id: z.string(),
@@ -14,6 +17,7 @@ export const liquidFundSchema = baseEntitySchema.extend({
   name: z.string().min(1),
   institution: z.string().optional(),
   balance: z.number().min(0),
+  currency: currencyCodeSchema.optional(),
   accountNumber: z.string().optional(),
   isEmergencyFund: z.boolean(),
 });
@@ -23,6 +27,7 @@ export const fixedDepositSchema = baseEntitySchema.extend({
   name: z.string().min(1),
   institution: z.string().min(1),
   principal: z.number().min(0),
+  currency: currencyCodeSchema.optional(),
   interestRate: z.number().min(0),
   startDate: z.string(),
   maturityDate: z.string(),
@@ -39,6 +44,7 @@ export const holdingSchema = baseEntitySchema.extend({
   quantity: z.number().min(0),
   averagePrice: z.number().min(0),
   currentPrice: z.number().min(0),
+  currency: currencyCodeSchema.optional(),
   lastUpdated: z.string(),
   broker: z.enum(['zerodha', 'other']),
   folioNumber: z.string().optional(),
@@ -54,7 +60,7 @@ export const cryptoHoldingSchema = baseEntitySchema.extend({
   currentPrice: z.number().min(0),
   lastUpdated: z.string(),
   exchange: z.enum(['coindcx', 'other']),
-  quoteCurrency: z.literal('INR'),
+  quoteCurrency: currencyCodeSchema.default('INR'),
 });
 
 export const recurringExpenseSchema = baseEntitySchema.extend({
@@ -70,6 +76,7 @@ export const recurringExpenseSchema = baseEntitySchema.extend({
     'other',
   ]),
   amount: z.number().min(0),
+  currency: currencyCodeSchema.optional(),
   frequency: z.enum(['monthly', 'quarterly', 'half_yearly', 'yearly']),
   startDate: z.string(),
   endDate: z.string().optional(),
@@ -85,6 +92,7 @@ export const loanSchema = baseEntitySchema.extend({
   lender: z.string().min(1),
   principal: z.number().min(0),
   outstandingBalance: z.number().min(0),
+  currency: currencyCodeSchema.optional(),
   interestRate: z.number().min(0),
   emiAmount: z.number().min(0),
   tenureMonths: z.number().int().min(1),
@@ -99,6 +107,7 @@ export const insurancePolicySchema = baseEntitySchema.extend({
   policyNumber: z.string().optional(),
   insuranceType: z.enum(['term', 'endowment', 'ulip', 'health', 'other']),
   sumAssured: z.number().min(0),
+  currency: currencyCodeSchema.optional(),
   annualPremium: z.number().min(0),
   premiumFrequency: z.enum(['monthly', 'quarterly', 'half_yearly', 'yearly']),
   startDate: z.string(),
@@ -113,6 +122,7 @@ export const retirementAccountSchema = baseEntitySchema.extend({
   name: z.string().min(1),
   accountNumber: z.string().optional(),
   currentBalance: z.number().min(0),
+  currency: currencyCodeSchema.optional(),
   annualContribution: z.number().optional(),
   employerContribution: z.number().optional(),
   interestRate: z.number().optional(),
@@ -126,6 +136,7 @@ export const assetSchema = baseEntitySchema.extend({
   category: z.enum(['real_estate', 'vehicle', 'gold', 'jewelry', 'other']),
   purchasePrice: z.number().min(0),
   currentEstimatedValue: z.number().min(0),
+  currency: currencyCodeSchema.optional(),
   purchaseDate: z.string(),
   lastValuationDate: z.string(),
   linkedLoanId: z.string().optional(),
@@ -138,7 +149,7 @@ export const financeStateSchema = z.object({
   appVersion: z.string(),
   profile: z.object({
     displayName: z.string().optional(),
-    baseCurrency: z.literal('INR'),
+    baseCurrency: currencyCodeSchema.default('INR'),
     monthlyIncome: z.number().optional(),
     financialYearStart: z.literal('april'),
   }),
@@ -146,6 +157,7 @@ export const financeStateSchema = z.object({
     theme: z.enum(['light', 'dark', 'system']),
     defaultDashboardPeriod: z.enum(['monthly', 'yearly']),
     showCents: z.boolean(),
+    exchangeRates: z.record(currencyCodeSchema, z.number().positive()).default({}),
   }),
   liquidFunds: z.array(liquidFundSchema),
   fixedDeposits: z.array(fixedDepositSchema),
@@ -179,6 +191,7 @@ export function createEmptyState(): z.infer<typeof financeStateSchema> {
       theme: 'system',
       defaultDashboardPeriod: 'monthly',
       showCents: false,
+      exchangeRates: {},
     },
     liquidFunds: [],
     fixedDeposits: [],

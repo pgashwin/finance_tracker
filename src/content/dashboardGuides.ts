@@ -1,5 +1,5 @@
 import type { FinanceState } from '@/types';
-import { formatCompactINR, formatPercent } from '@/utils/currency';
+import { formatCompactForState, formatPercent } from '@/utils/currency';
 import {
   debtToAssetRatio,
   emiBurdenPercent,
@@ -183,15 +183,15 @@ export function assessSavingsRate(rate: number | null): MetricAssessment {
   };
 }
 
-export function assessNetWorth(value: number): MetricAssessment {
+export function assessNetWorth(value: number, state: FinanceState): MetricAssessment {
   return {
     label: 'Net worth',
-    value: formatCompactINR(value),
+    value: formatCompactForState(value, state),
     ideal: 'Positive and growing over time',
     deviation:
       value >= 0
         ? 'Assets exceed liabilities'
-        : `Liabilities exceed assets by ${formatCompactINR(Math.abs(value))}`,
+        : `Liabilities exceed assets by ${formatCompactForState(Math.abs(value), state)}`,
     status: value >= 0 ? 'good' : 'bad',
   };
 }
@@ -235,7 +235,7 @@ export const WIDGET_GUIDES = {
   assetAllocation: {
     summary: 'Pie view of the same bucket split — quick visual of concentration risk.',
     formula: 'Same as finance buckets, shown as proportional slices',
-    ideal: 'Avoid > 40% in a single bucket unless intentional (e.g. home equity).',
+    ideal: 'Avoid > 40% in a single bucket unless intentional (e.g. home equity in Real Estate).',
   },
   assetsLiabilities: {
     summary: 'Side-by-side view of what you own versus what you owe.',
@@ -282,7 +282,7 @@ export const WIDGET_GUIDES = {
 export function buildDashboardAssessments(state: FinanceState): MetricAssessment[] {
   const spend = spendAnalysis(state);
   return [
-    assessNetWorth(netWorth(state)),
+    assessNetWorth(netWorth(state), state),
     assessLiquidityRatio(liquidityRatio(state)),
     assessEmergencyMonths(emergencyFundMonths(state)),
     assessDebtToAsset(debtToAssetRatio(state)),
@@ -296,24 +296,24 @@ export function buildOverviewAssessments(state: FinanceState) {
   const spend = spendAnalysis(state);
   const nw = netWorth(state);
   return {
-    netWorth: assessNetWorth(nw),
+    netWorth: assessNetWorth(nw, state),
     liquid: {
       ...assessLiquidityRatio(liquidityRatio(state)),
-      value: formatCompactINR(totalLiquidAssets(state)),
+      value: formatCompactForState(totalLiquidAssets(state), state),
     },
     debt: {
       ...assessDebtToAsset(debtToAssetRatio(state)),
-      value: formatCompactINR(totalLiabilities(state)),
+      value: formatCompactForState(totalLiabilities(state), state),
     },
     outflow: {
       ...(spend.savingsRate != null
         ? assessSavingsRate(spend.savingsRate)
         : assessEmiBurden(emiBurdenPercent(state))),
-      value: formatCompactINR(monthlyOutflow(state)),
+      value: formatCompactForState(monthlyOutflow(state), state),
     },
     pnl: {
       label: 'Unrealized P&L',
-      value: formatCompactINR(unrealizedPnL(state)),
+      value: formatCompactForState(unrealizedPnL(state), state),
       ideal: 'Positive over long horizons; update stale prices regularly',
       deviation:
         unrealizedPnL(state) >= 0
@@ -323,9 +323,9 @@ export function buildOverviewAssessments(state: FinanceState) {
     },
     totalAssets: {
       label: 'Total assets',
-      value: formatCompactINR(totalAssetsValue(state)),
+      value: formatCompactForState(totalAssetsValue(state), state),
       ideal: 'Diversified across buckets; grows with savings and returns',
-      deviation: `${formatCompactINR(totalAssetsValue(state))} across all buckets`,
+      deviation: `${formatCompactForState(totalAssetsValue(state), state)} across all buckets`,
       status: 'neutral' as DeviationStatus,
     },
     pnlSummary: totalPnLSummary(state),

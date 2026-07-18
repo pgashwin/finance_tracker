@@ -11,7 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { WidgetGuide } from '@/components/dashboard/WidgetGuide';
 import type { WidgetGuideContent } from '@/content/dashboardGuides';
 import type { MonthlySnapshot } from '@/types';
-import { formatCompactINR } from '@/utils/currency';
+import { useCurrency } from '@/hooks/useCurrency';
 
 interface Props {
   snapshots: MonthlySnapshot[];
@@ -19,6 +19,8 @@ interface Props {
 }
 
 export function NetWorthChart({ snapshots, guide }: Props) {
+  const { formatCompact } = useCurrency();
+
   if (snapshots.length < 2) {
     return (
       <Card>
@@ -47,8 +49,8 @@ export function NetWorthChart({ snapshots, guide }: Props) {
           <LineChart data={data}>
             <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
             <XAxis dataKey="month" tick={{ fontSize: 12 }} />
-            <YAxis tickFormatter={(v) => formatCompactINR(v)} tick={{ fontSize: 12 }} width={70} />
-            <Tooltip formatter={(v: number) => formatCompactINR(v)} />
+            <YAxis tickFormatter={(v) => formatCompact(v)} tick={{ fontSize: 12 }} width={70} />
+            <Tooltip formatter={(v: number) => formatCompact(v)} />
             <Line type="monotone" dataKey="netWorth" stroke="hsl(var(--primary))" strokeWidth={2} dot />
           </LineChart>
         </ResponsiveContainer>

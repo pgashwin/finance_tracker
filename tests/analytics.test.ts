@@ -7,9 +7,11 @@ import {
   recordSnapshot,
   dedupeSnapshots,
   normalizeSnapshotMonth,
+  assetAllocation,
+  physicalAssetsByCategory,
 } from '@/services/analytics/netWorth';
-import { totalPnLSummary, spendAnalysis } from '@/services/analytics/portfolioAnalytics';
-import { toMonthlyEquivalent } from '@/utils/currency';
+import { totalPnLSummary, spendAnalysis, financeBucketsSummary, investmentTypeComparison } from '@/services/analytics/portfolioAnalytics';
+import { toMonthlyEquivalent, convertToBase } from '@/utils/currency';
 import { serializeState, deserializeState } from '@/services/checkpoint/serialize';
 import { parseZerodhaCsv, parseZerodhaXlsx, parseZerodhaXlsxDetailed } from '@/services/import/zerodhaCsv';
 import { parseCoinDcxCsv } from '@/services/import/coindcxCsv';
@@ -49,6 +51,12 @@ describe('analytics', () => {
 
   it('computes monthly equivalent', () => {
     expect(toMonthlyEquivalent(12000, 'yearly')).toBeCloseTo(1000);
+  });
+
+  it('converts foreign currency amounts to base currency', () => {
+    expect(convertToBase(100, 'USD', 'INR', { USD: 83 })).toBe(8300);
+    expect(convertToBase(100, 'INR', 'INR', { USD: 83 })).toBe(100);
+    expect(convertToBase(50, 'EUR', 'INR', {})).toBe(50);
   });
 
   it('handles zero assets for liquidity ratio', () => {
@@ -104,7 +112,7 @@ describe('checkpoint', () => {
     const json = serializeState(state);
     const loaded = deserializeState(json);
     expect(loaded.profile.displayName).toBe('Test');
-    expect(loaded.schemaVersion).toBe(2);
+    expect(loaded.schemaVersion).toBe(3);
   });
 });
 
@@ -226,6 +234,55 @@ describe('portfolio analytics', () => {
     expect(summary.breakdown.length).toBeGreaterThan(0);
   });
 
+  it('splits physical assets by category in charts', () => {
+    const state = createEmptyState();
+    state.assets.push(
+      {
+        id: generateId(),
+        createdAt: nowIso(),
+        updatedAt: nowIso(),
+        type: 'asset',
+        name: 'Apartment',
+        category: 'real_estate',
+        purchasePrice: 5000000,
+        currentEstimatedValue: 7000000,
+        purchaseDate: '2020-01-01',
+        lastValuationDate: '2026-01-01',
+      },
+      {
+        id: generateId(),
+        createdAt: nowIso(),
+        updatedAt: nowIso(),
+        type: 'asset',
+        name: 'Gold coins',
+        category: 'gold',
+        purchasePrice: 200000,
+        currentEstimatedValue: 260000,
+        purchaseDate: '2022-01-01',
+        lastValuationDate: '2026-01-01',
+      },
+    );
+
+    const categories = physicalAssetsByCategory(state);
+    expect(categories.map((c) => c.label)).toEqual(['Real Estate', 'Gold']);
+
+    const allocation = assetAllocation(state);
+    expect(allocation.some((s) => s.name === 'Real Estate')).toBe(true);
+    expect(allocation.some((s) => s.name === 'Gold')).toBe(true);
+    expect(allocation.some((s) => s.name === 'Real Estate & Assets')).toBe(false);
+
+    const buckets = financeBucketsSummary(state);
+    expect(buckets.some((b) => b.bucket === 'Gold')).toBe(true);
+
+    const comparison = investmentTypeComparison(state);
+    expect(comparison.some((r) => r.type === 'Gold')).toBe(true);
+    expect(comparison.some((r) => r.type === 'Real Estate')).toBe(true);
+    expect(comparison.every((r) => r.type !== 'Real Estate & Assets')).toBe(true);
+
+    const pnl = totalPnLSummary(state);
+    expect(pnl.breakdown.some((s) => s.name === 'Gold')).toBe(true);
+  });
+
   it('computes spend analysis with savings rate', () => {
     const state = createEmptyState();
     state.profile.monthlyIncome = 100000;
@@ -256,6 +313,20 @@ describe('checkpoint migration', () => {
     const json = JSON.stringify(v1);
     const loaded = deserializeState(json);
     expect(loaded.cryptoHoldings).toEqual([]);
-    expect(loaded.schemaVersion).toBe(2);
+    expect(loaded.schemaVersion).toBe(3);
+  });
+
+  it('migrates v2 checkpoint to v3 with exchangeRates and baseCurrency', () => {
+    const state = createEmptyState();
+    const v2 = {
+      ...state,
+      schemaVersion: 2,
+      settings: { ...state.settings, exchangeRates: undefined },
+    };
+    const json = JSON.stringify(v2);
+    const loaded = deserializeState(json);
+    expect(loaded.schemaVersion).toBe(3);
+    expect(loaded.settings.exchangeRates).toEqual({});
+    expect(loaded.profile.baseCurrency).toBe('INR');
   });
 });
