@@ -1,4 +1,5 @@
 import type { AssetCategory, FinanceState, Holding, CryptoHolding, MonthlySnapshot, RecurringExpense } from '@/types';
+import { ASSET_CATEGORY_COLORS, ALLOCATION_COLORS } from '@/constants/chartColors';
 import { entityAmountInBase, toMonthlyEquivalent } from '@/utils/currency';
 
 export function holdingInvestedValue(h: Holding): number {
@@ -40,13 +41,7 @@ export const ASSET_CATEGORY_LABELS: Record<AssetCategory, string> = {
   other: 'Other Assets',
 };
 
-export const ASSET_CATEGORY_COLORS: Record<AssetCategory, string> = {
-  real_estate: '#ef4444',
-  vehicle: '#6366f1',
-  gold: '#eab308',
-  jewelry: '#ec4899',
-  other: '#6b7280',
-};
+export { ASSET_CATEGORY_COLORS };
 
 export interface AssetCategoryTotals {
   category: AssetCategory;
@@ -225,14 +220,7 @@ export interface AllocationSlice {
   color: string;
 }
 
-const ALLOCATION_COLORS: Record<string, string> = {
-  Liquid: '#3b82f6',
-  'Fixed Deposits': '#8b5cf6',
-  Equity: '#10b981',
-  Crypto: '#06b6d4',
-  'PPF / PF': '#f59e0b',
-  Other: '#6b7280',
-};
+const ALLOCATION_COLORS_LOCAL = ALLOCATION_COLORS;
 
 export function assetAllocation(state: FinanceState): AllocationSlice[] {
   const liquid = totalLiquidAssets(state);
@@ -242,11 +230,11 @@ export function assetAllocation(state: FinanceState): AllocationSlice[] {
   const retirement = totalRetirement(state);
 
   const slices: AllocationSlice[] = [
-    { name: 'Liquid', value: liquid, color: ALLOCATION_COLORS.Liquid! },
-    { name: 'Fixed Deposits', value: fds, color: ALLOCATION_COLORS['Fixed Deposits']! },
-    { name: 'Equity', value: equity, color: ALLOCATION_COLORS.Equity! },
-    { name: 'Crypto', value: crypto, color: ALLOCATION_COLORS.Crypto! },
-    { name: 'PPF / PF', value: retirement, color: ALLOCATION_COLORS['PPF / PF']! },
+    { name: 'Liquid', value: liquid, color: ALLOCATION_COLORS_LOCAL.Liquid! },
+    { name: 'Fixed Deposits', value: fds, color: ALLOCATION_COLORS_LOCAL['Fixed Deposits']! },
+    { name: 'Equity', value: equity, color: ALLOCATION_COLORS_LOCAL.Equity! },
+    { name: 'Crypto', value: crypto, color: ALLOCATION_COLORS_LOCAL.Crypto! },
+    { name: 'PPF / PF', value: retirement, color: ALLOCATION_COLORS_LOCAL['PPF / PF']! },
     ...physicalAssetsByCategory(state).map((cat) => ({
       name: cat.label,
       value: cat.current,

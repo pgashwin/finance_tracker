@@ -3,9 +3,11 @@ import type { HTMLAttributes } from 'react';
 
 const variants = {
   default: 'bg-secondary text-secondary-foreground',
-  success: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
-  warning: 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400',
-  destructive: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
+  success:
+    'bg-success-container text-success-container-foreground dark:bg-success-container dark:text-success-container-foreground',
+  warning:
+    'bg-warning-container text-warning-container-foreground dark:bg-warning-container dark:text-warning-container-foreground',
+  destructive: 'bg-destructive/15 text-destructive dark:bg-destructive/20',
   outline: 'border border-input text-foreground',
 };
 
@@ -17,7 +19,7 @@ export function Badge({
   return (
     <span
       className={cn(
-        'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold',
+        'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium',
         variants[variant],
         className,
       )}

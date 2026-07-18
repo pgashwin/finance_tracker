@@ -5,13 +5,12 @@ import type { WidgetGuideContent } from '@/content/dashboardGuides';
 import type { SpendAnalysis } from '@/services/analytics/portfolioAnalytics';
 import { useCurrency } from '@/hooks/useCurrency';
 import { formatPercent } from '@/utils/currency';
+import { SPEND_CATEGORY_COLORS, MD3 } from '@/constants/chartColors';
 
 interface Props {
   analysis: SpendAnalysis;
   guide?: WidgetGuideContent;
 }
-
-const SPEND_COLORS = ['#ef4444', '#f97316', '#eab308', '#84cc16', '#06b6d4', '#8b5cf6', '#64748b'];
 
 export function SpendAnalysisChart({ analysis, guide }: Props) {
   const { formatCompact } = useCurrency();
@@ -34,13 +33,13 @@ export function SpendAnalysisChart({ analysis, guide }: Props) {
   const categoryData = categories.map((c, i) => ({
     name: c.label,
     value: c.monthly,
-    color: SPEND_COLORS[i % SPEND_COLORS.length]!,
+    color: SPEND_CATEGORY_COLORS[i % SPEND_CATEGORY_COLORS.length]!,
   }));
 
   const natureData = [
-    { name: 'Fixed (EMI, rent, etc.)', value: fixedMonthly, color: '#ef4444' },
-    { name: 'Discretionary', value: discretionaryMonthly, color: '#f97316' },
-    { name: 'Investments (SIP)', value: investmentMonthly, color: '#10b981' },
+    { name: 'Fixed (EMI, rent, etc.)', value: fixedMonthly, color: MD3.error },
+    { name: 'Discretionary', value: discretionaryMonthly, color: MD3.warning },
+    { name: 'Investments (SIP)', value: investmentMonthly, color: MD3.success },
   ].filter((d) => d.value > 0);
 
   return (
@@ -51,7 +50,7 @@ export function SpendAnalysisChart({ analysis, guide }: Props) {
           <span>Monthly: <strong>{formatCompact(totalMonthly)}</strong></span>
           <span>Annual: <strong>{formatCompact(analysis.totalAnnual)}</strong></span>
           {savingsRate != null && (
-            <span className={savingsRate >= 20 ? 'text-green-600' : 'text-amber-600'}>
+            <span className={savingsRate >= 20 ? 'text-success' : 'text-warning'}>
               Savings rate: <strong>{formatPercent(savingsRate)}</strong>
             </span>
           )}

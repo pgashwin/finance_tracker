@@ -19,7 +19,7 @@ export function AppShell() {
     <div className="flex min-h-screen flex-col md:flex-row">
       <Sidebar />
       <div className="flex flex-1 flex-col pb-16 md:pb-0">
-        <header className="sticky top-0 z-30 border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80">
+        <header className="sticky top-0 z-30 border-b border-border/60 bg-card/90 backdrop-blur supports-[backdrop-filter]:bg-card/80 md-elevation-1">
           <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h1 className="text-xl font-bold tracking-tight">Finance Tracker</h1>
@@ -40,7 +40,7 @@ export function AppShell() {
       </div>
       <MobileNav />
       {toast && (
-        <div className="fixed bottom-20 left-4 right-4 z-50 rounded-lg border bg-card p-4 shadow-lg md:bottom-4 md:left-auto md:right-4 md:max-w-sm">
+        <div className="fixed bottom-20 left-4 right-4 z-50 rounded-xl bg-accent p-4 text-accent-foreground md-elevation-2 md:bottom-4 md:left-auto md:right-4 md:max-w-sm">
           <p className="text-sm">{toast}</p>
         </div>
       )}

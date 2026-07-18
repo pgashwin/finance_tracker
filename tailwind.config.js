@@ -4,6 +4,9 @@ export default {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ['Roboto', 'system-ui', '-apple-system', 'sans-serif'],
+      },
       colors: {
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
@@ -34,8 +37,22 @@ export default {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
         },
-        success: 'hsl(var(--success))',
-        warning: 'hsl(var(--warning))',
+        success: {
+          DEFAULT: 'hsl(var(--success))',
+          foreground: 'hsl(var(--success-foreground))',
+          container: 'hsl(var(--success-container))',
+          'container-foreground': 'hsl(var(--success-container-foreground))',
+        },
+        warning: {
+          DEFAULT: 'hsl(var(--warning))',
+          foreground: 'hsl(var(--warning-foreground))',
+          container: 'hsl(var(--warning-container))',
+          'container-foreground': 'hsl(var(--warning-container-foreground))',
+        },
+        surface: {
+          container: 'hsl(var(--surface-container))',
+          'container-high': 'hsl(var(--surface-container-high))',
+        },
       },
       borderRadius: {
         lg: 'var(--radius)',

@@ -2,6 +2,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { WidgetGuide } from '@/components/dashboard/WidgetGuide';
 import type { WidgetGuideContent } from '@/content/dashboardGuides';
+import { MD3 } from '@/constants/chartColors';
 import { useCurrency } from '@/hooks/useCurrency';
 
 interface Props {
@@ -36,7 +37,7 @@ export function AssetsLiabilitiesChart({ assets, liabilities, netWorth, guide }:
     <Card>
       <CardHeader>
         <CardTitle>Assets vs Liabilities</CardTitle>
-        <p className={`text-sm font-medium ${netWorth >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+        <p className={`text-sm font-medium ${netWorth >= 0 ? 'text-success' : 'text-destructive'}`}>
           Net worth: {formatCompact(netWorth)}
         </p>
       </CardHeader>
@@ -48,8 +49,8 @@ export function AssetsLiabilitiesChart({ assets, liabilities, netWorth, guide }:
             <YAxis tickFormatter={(v) => formatCompact(v)} width={72} />
             <Tooltip formatter={(v: number) => formatCompact(v)} />
             <Legend />
-            <Bar dataKey="assets" name="Total assets" fill="#10b981" radius={[4, 4, 0, 0]} />
-            <Bar dataKey="liabilities" name="Total debt" fill="#ef4444" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="assets" name="Total assets" fill={MD3.success} radius={[4, 4, 0, 0]} />
+            <Bar dataKey="liabilities" name="Total debt" fill={MD3.error} radius={[4, 4, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
         {guide && <WidgetGuide guide={guide} />}

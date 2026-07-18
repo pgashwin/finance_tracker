@@ -133,7 +133,7 @@ export function HoldingsPage() {
                     <td className="p-2">{item.quantity}</td>
                     <td className="p-2">{format(holdingInvestedValue(item), item.currency)}</td>
                     <td className="p-2">{format(holdingCurrentValue(item), item.currency)}</td>
-                    <td className={`p-2 ${pnl >= 0 ? 'text-green-600' : 'text-red-600'}`}>{format(pnl, item.currency)}</td>
+                    <td className={`p-2 ${pnl >= 0 ? 'text-success' : 'text-destructive'}`}>{format(pnl, item.currency)}</td>
                     <td className="p-2">
                       <Button variant="ghost" size="icon" onClick={() => openEdit(item)}><Pencil className="h-4 w-4" /></Button>
                       <Button variant="ghost" size="icon" onClick={() => remove(item.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>

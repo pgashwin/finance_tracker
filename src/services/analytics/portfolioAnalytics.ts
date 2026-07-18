@@ -15,16 +15,10 @@ import {
   totalRetirement,
   activeRecurringExpenses,
 } from './netWorth';
+import { BUCKET_COLORS } from '@/constants/chartColors';
 import { toMonthlyEquivalent, entityAmountInBase } from '@/utils/currency';
 
-export const BUCKET_COLORS: Record<string, string> = {
-  Liquid: '#3b82f6',
-  'Fixed Deposits': '#8b5cf6',
-  Equity: '#10b981',
-  Crypto: '#06b6d4',
-  'PPF / PF': '#f59e0b',
-  Debt: '#dc2626',
-};
+export { BUCKET_COLORS };
 
 export interface PnLSlice {
   name: string;

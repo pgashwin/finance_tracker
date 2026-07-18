@@ -33,8 +33,8 @@ export function KpiCard({
         <div
           className={cn(
             'text-2xl font-bold',
-            trend === 'positive' && 'text-green-600 dark:text-green-400',
-            trend === 'negative' && 'text-red-600 dark:text-red-400',
+            trend === 'positive' && 'text-success',
+            trend === 'negative' && 'text-destructive',
           )}
         >
           {value}

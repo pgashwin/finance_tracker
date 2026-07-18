@@ -2,6 +2,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { WidgetGuide } from '@/components/dashboard/WidgetGuide';
 import type { WidgetGuideContent } from '@/content/dashboardGuides';
+import { CASH_FLOW_COLORS } from '@/constants/chartColors';
 import { useCurrency } from '@/hooks/useCurrency';
 
 interface Props {
@@ -35,10 +36,10 @@ export function CashFlowChart({ income, expenses, surplus, investmentSip, guide 
   }
 
   const chartData = [
-    { name: 'Income', value: income, color: '#10b981' },
-    { name: 'Expenses', value: expenses, color: '#ef4444' },
-    { name: 'Surplus', value: Math.max(0, surplus ?? 0), color: '#3b82f6' },
-    { name: 'SIP / Invest', value: investmentSip, color: '#8b5cf6' },
+    { name: 'Income', value: income, color: CASH_FLOW_COLORS.income },
+    { name: 'Expenses', value: expenses, color: CASH_FLOW_COLORS.expenses },
+    { name: 'Surplus', value: Math.max(0, surplus ?? 0), color: CASH_FLOW_COLORS.surplus },
+    { name: 'SIP / Invest', value: investmentSip, color: CASH_FLOW_COLORS.sip },
   ].filter((d) => d.value > 0);
 
   return (
@@ -47,7 +48,7 @@ export function CashFlowChart({ income, expenses, surplus, investmentSip, guide 
         <CardTitle>Monthly Cash Flow</CardTitle>
         <p className="text-sm text-muted-foreground">
           Surplus after recurring expenses:{' '}
-          <strong className={(surplus ?? 0) >= 0 ? 'text-green-600' : 'text-red-600'}>
+          <strong className={(surplus ?? 0) >= 0 ? 'text-success' : 'text-destructive'}>
             {formatCompact(surplus ?? 0)}
           </strong>
         </p>

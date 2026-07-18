@@ -16,7 +16,7 @@ export function BucketTotalBar({ stats }: BucketTotalBarProps) {
   if (!stats.length) return null;
 
   return (
-    <Card className="border-primary/20 bg-primary/5">
+    <Card className="border-0 bg-accent/60 md-elevation-1">
       <CardContent className="grid gap-4 p-4 sm:grid-cols-2 lg:grid-cols-4">
         {stats.map((stat) => (
           <div key={stat.label}>
@@ -26,8 +26,8 @@ export function BucketTotalBar({ stats }: BucketTotalBarProps) {
             <p
               className={cn(
                 'mt-1 text-xl font-bold',
-                stat.variant === 'positive' && 'text-green-600 dark:text-green-400',
-                stat.variant === 'negative' && 'text-red-600 dark:text-red-400',
+                stat.variant === 'positive' && 'text-success',
+                stat.variant === 'negative' && 'text-destructive',
               )}
             >
               {stat.value}

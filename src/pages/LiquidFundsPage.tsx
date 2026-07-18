@@ -96,7 +96,7 @@ export function LiquidFundsPage() {
                   <p className="font-medium">
                     {item.name}
                     {item.isEmergencyFund && (
-                      <span className="ml-2 text-xs text-green-600">Emergency</span>
+                      <span className="ml-2 text-xs text-success">Emergency</span>
                     )}
                   </p>
                   {item.institution && (

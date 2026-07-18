@@ -3,9 +3,9 @@ import type { DeviationStatus, WidgetGuideContent } from '@/content/dashboardGui
 import { Info } from 'lucide-react';
 
 const statusStyles: Record<DeviationStatus, string> = {
-  good: 'text-green-700 dark:text-green-400',
-  warn: 'text-amber-700 dark:text-amber-400',
-  bad: 'text-red-700 dark:text-red-400',
+  good: 'text-success',
+  warn: 'text-warning',
+  bad: 'text-destructive',
   neutral: 'text-muted-foreground',
   na: 'text-muted-foreground',
 };
@@ -25,7 +25,7 @@ interface WidgetGuideProps {
 
 export function WidgetGuide({ guide, className }: WidgetGuideProps) {
   return (
-    <div className={cn('mt-4 space-y-2 rounded-md border bg-muted/40 p-3 text-xs', className)}>
+    <div className={cn('mt-4 space-y-2 rounded-xl bg-surface-container p-3 text-xs', className)}>
       <div className="flex items-start gap-2">
         <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" />
         <p className="text-muted-foreground">{guide.summary}</p>
@@ -65,7 +65,7 @@ interface MetricGuideRowProps {
 
 export function MetricGuideRow({ label, value, ideal, deviation, status }: MetricGuideRowProps) {
   return (
-    <div className="rounded-lg border p-3">
+    <div className="rounded-xl bg-surface-container p-3">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <dt className="text-sm font-medium">{label}</dt>
         <dd className="text-lg font-semibold">{value}</dd>

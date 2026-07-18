@@ -142,7 +142,7 @@ export function CryptoPage() {
                     <td className="p-2">{item.quantity}</td>
                     <td className="p-2">{format(cryptoInvestedValue(item), item.quoteCurrency)}</td>
                     <td className="p-2">{format(cryptoCurrentValue(item), item.quoteCurrency)}</td>
-                    <td className={`p-2 ${pnl >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    <td className={`p-2 ${pnl >= 0 ? 'text-success' : 'text-destructive'}`}>
                       {format(pnl, item.quoteCurrency)}
                     </td>
                     <td className="p-2">

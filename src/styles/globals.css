@@ -4,48 +4,66 @@
 
 @layer base {
   :root {
-    --background: 210 20% 98%;
-    --foreground: 222 47% 11%;
+    /* Material Design 3 — Blue light theme */
+    --background: 225 100% 98%;
+    --foreground: 220 13% 11%;
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
-    --primary: 221 83% 53%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 222 47% 11%;
-    --muted: 210 40% 96%;
-    --muted-foreground: 215 16% 47%;
-    --accent: 210 40% 96%;
-    --accent-foreground: 222 47% 11%;
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 221 83% 53%;
-    --radius: 0.5rem;
-    --success: 142 76% 36%;
-    --warning: 38 92% 50%;
+    --card-foreground: 220 13% 11%;
+    --primary: 207 100% 32%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 220 17% 93%;
+    --secondary-foreground: 220 14% 38%;
+    --muted: 225 20% 94%;
+    --muted-foreground: 220 5% 47%;
+    --accent: 214 100% 91%;
+    --accent-foreground: 207 100% 11%;
+    --destructive: 0 75% 42%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 17% 88%;
+    --input: 220 17% 88%;
+    --ring: 207 100% 32%;
+    --radius: 0.75rem;
+    --success: 123 46% 34%;
+    --success-foreground: 0 0% 100%;
+    --success-container: 123 38% 84%;
+    --success-container-foreground: 123 55% 20%;
+    --warning: 32 100% 47%;
+    --warning-foreground: 0 0% 100%;
+    --warning-container: 36 100% 88%;
+    --warning-container-foreground: 32 100% 25%;
+    --surface-container: 225 18% 93%;
+    --surface-container-high: 225 15% 90%;
   }
 
   .dark {
-    --background: 222 47% 7%;
-    --foreground: 210 40% 98%;
-    --card: 222 47% 10%;
-    --card-foreground: 210 40% 98%;
-    --primary: 217 91% 60%;
-    --primary-foreground: 222 47% 11%;
-    --secondary: 217 33% 17%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217 33% 17%;
-    --muted-foreground: 215 20% 65%;
-    --accent: 217 33% 17%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 63% 31%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217 33% 17%;
-    --input: 217 33% 17%;
-    --ring: 224 76% 48%;
-    --success: 142 71% 45%;
-    --warning: 38 92% 50%;
+    /* Material Design 3 — Blue dark theme */
+    --background: 220 20% 10%;
+    --foreground: 220 12% 90%;
+    --card: 220 18% 14%;
+    --card-foreground: 220 12% 90%;
+    --primary: 214 100% 80%;
+    --primary-foreground: 207 100% 17%;
+    --secondary: 220 15% 20%;
+    --secondary-foreground: 220 12% 90%;
+    --muted: 220 15% 18%;
+    --muted-foreground: 220 8% 65%;
+    --accent: 207 100% 25%;
+    --accent-foreground: 214 100% 91%;
+    --destructive: 6 100% 84%;
+    --destructive-foreground: 0 75% 20%;
+    --border: 220 12% 22%;
+    --input: 220 12% 22%;
+    --ring: 214 100% 80%;
+    --success: 123 38% 55%;
+    --success-foreground: 123 55% 12%;
+    --success-container: 123 30% 22%;
+    --success-container-foreground: 123 38% 75%;
+    --warning: 38 100% 65%;
+    --warning-foreground: 32 100% 15%;
+    --warning-container: 32 50% 22%;
+    --warning-container-foreground: 38 100% 80%;
+    --surface-container: 220 16% 16%;
+    --surface-container-high: 220 14% 19%;
   }
 
   * {
@@ -54,6 +72,21 @@
 
   body {
     @apply bg-background text-foreground antialiased;
+    font-family: 'Roboto', system-ui, -apple-system, sans-serif;
+  }
+}
+
+@layer components {
+  .md-elevation-1 {
+    box-shadow:
+      0 1px 2px rgb(25 28 32 / 0.08),
+      0 1px 3px rgb(25 28 32 / 0.12);
+  }
+
+  .md-elevation-2 {
+    box-shadow:
+      0 2px 4px rgb(25 28 32 / 0.08),
+      0 4px 8px rgb(25 28 32 / 0.12);
   }
 }
 

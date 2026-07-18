@@ -97,7 +97,7 @@ export function LoansPage() {
                   </p>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="font-semibold text-red-600">{format(item.outstandingBalance, item.currency)}</span>
+                  <span className="font-semibold text-destructive">{format(item.outstandingBalance, item.currency)}</span>
                   <Button variant="ghost" size="icon" onClick={() => openEdit(item)}><Pencil className="h-4 w-4" /></Button>
                   <Button variant="ghost" size="icon" onClick={() => remove(item.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
                 </div>

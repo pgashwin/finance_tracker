@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { WidgetGuide } from '@/components/dashboard/WidgetGuide';
 import type { WidgetGuideContent } from '@/content/dashboardGuides';
 import type { InvestmentComparisonRow } from '@/services/analytics/portfolioAnalytics';
+import { CHART_NEGATIVE } from '@/constants/chartColors';
 import { useCurrency } from '@/hooks/useCurrency';
 import { formatPercent } from '@/utils/currency';
 
@@ -68,7 +69,7 @@ export function InvestmentComparisonChart({ data, guide }: Props) {
               {chartData.map((entry) => (
                 <Cell
                   key={entry.type}
-                  fill={entry.roi >= 0 ? entry.color : '#ef4444'}
+                  fill={entry.roi >= 0 ? entry.color : CHART_NEGATIVE}
                 />
               ))}
             </Bar>
@@ -89,7 +90,7 @@ export function InvestmentComparisonChart({ data, guide }: Props) {
                 <tr key={row.type} className="border-b">
                   <td className="p-2">{row.type}</td>
                   <td className="p-2">{formatCompact(row.invested)}</td>
-                  <td className={`p-2 ${row.pnl >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  <td className={`p-2 ${row.pnl >= 0 ? 'text-success' : 'text-destructive'}`}>
                     {formatCompact(row.pnl)}
                   </td>
                   <td className="p-2">

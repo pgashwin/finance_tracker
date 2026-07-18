@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { WidgetGuide } from '@/components/dashboard/WidgetGuide';
 import type { WidgetGuideContent } from '@/content/dashboardGuides';
 import type { PnLSlice } from '@/services/analytics/portfolioAnalytics';
+import { CHART_NEUTRAL, MD3 } from '@/constants/chartColors';
 import { useCurrency } from '@/hooks/useCurrency';
 import { formatPercent } from '@/utils/currency';
 
@@ -46,7 +47,7 @@ export function PnLBreakdownChart({ data, totalPnl, guide }: Props) {
       <CardHeader>
         <CardTitle>Profit & Loss Analysis</CardTitle>
         <p
-          className={`text-sm font-medium ${totalPnl >= 0 ? 'text-green-600' : 'text-red-600'}`}
+          className={`text-sm font-medium ${totalPnl >= 0 ? 'text-success' : 'text-destructive'}`}
         >
           Total unrealized P&L: {formatCompact(totalPnl)}
         </p>
@@ -67,8 +68,8 @@ export function PnLBreakdownChart({ data, totalPnl, guide }: Props) {
               }
             />
             <Legend />
-            <Bar dataKey="invested" name="Invested" fill="#94a3b8" radius={[4, 4, 0, 0]} />
-            <Bar dataKey="current" name="Current value" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="invested" name="Invested" fill={CHART_NEUTRAL} radius={[4, 4, 0, 0]} />
+            <Bar dataKey="current" name="Current value" fill={MD3.primary} radius={[4, 4, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
         <div className="mt-4 overflow-x-auto">
@@ -84,7 +85,7 @@ export function PnLBreakdownChart({ data, totalPnl, guide }: Props) {
               {data.map((row) => (
                 <tr key={row.name} className="border-b">
                   <td className="p-2">{row.name}</td>
-                  <td className={`p-2 font-medium ${row.pnl >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  <td className={`p-2 font-medium ${row.pnl >= 0 ? 'text-success' : 'text-destructive'}`}>
                     {formatCompact(row.pnl)}
                   </td>
                   <td className="p-2">
