@@ -11,6 +11,7 @@ import {
   PiggyBank,
   Home,
   Settings,
+  MessageSquare,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -25,6 +26,7 @@ const navItems = [
   { to: '/insurance', label: 'Insurance', icon: Shield },
   { to: '/retirement', label: 'PPF / PF', icon: PiggyBank },
   { to: '/assets', label: 'Assets', icon: Home },
+  { to: '/chat', label: 'Chat', icon: MessageSquare },
   { to: '/settings', label: 'Settings', icon: Settings },
 ];
 
@@ -33,6 +35,7 @@ const mobileNavLabels: Record<string, string> = {
   'Liquid Funds': 'Liquid',
   'Fixed Deposits': 'FDs',
   'PPF / PF': 'PPF/PF',
+  Chat: 'Chat',
 };
 
 function mobileNavLabel(label: string): string {

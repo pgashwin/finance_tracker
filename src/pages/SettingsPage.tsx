@@ -8,6 +8,8 @@ import { SUPPORTED_CURRENCIES } from '@/constants/currencies';
 import type { CurrencyCode } from '@/types';
 import { getCurrencySymbol } from '@/utils/currency';
 
+import { AiAssistantSettingsCard } from '@/components/settings/AiAssistantSettingsCard';
+
 export function SettingsPage() {
   const profile = useFinanceStore((s) => s.state.profile);
   const settings = useFinanceStore((s) => s.state.settings);
@@ -130,6 +132,7 @@ export function SettingsPage() {
           </label>
         </CardContent>
       </Card>
+      <AiAssistantSettingsCard />
       <Card>
         <CardHeader>
           <CardTitle>Privacy</CardTitle>
@@ -137,7 +140,9 @@ export function SettingsPage() {
         <CardContent>
           <p className="text-sm text-muted-foreground">
             All financial data lives in your checkpoint file on your device. This app does not send
-            your data to any server. Remember to save your checkpoint after making changes.
+            your checkpoint data to any server. The optional AI chat feature sends a portfolio
+            summary to your chosen provider when you ask a question — configure it in AI Assistant
+            above. Remember to save your checkpoint after making changes.
           </p>
         </CardContent>
       </Card>

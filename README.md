@@ -18,6 +18,7 @@ After enabling GitHub Pages, the app will be available at:
 - Local checkpoint save/load — no cloud storage
 - Works on desktop and mobile browsers
 - Dark mode support
+- **Portfolio Chat (BYOK)** — ask questions about your finances using your own Gemini, OpenAI, or Claude API key
 
 ## Quick Start
 
@@ -115,6 +116,37 @@ uv run ft-test
 2. Download your holdings report from Zerodha Console (CSV or XLSX)
 3. Upload the file, preview rows, and confirm import
 
+## Portfolio Chat (BYOK)
+
+The **Chat** page lets you ask questions about your portfolio using an AI provider you configure. Your checkpoint file is never uploaded — only a summarized snapshot (net worth, ratios, allocation, top holdings, etc.) is sent with each question.
+
+### Setup
+
+1. Open **Settings → AI Assistant (BYOK)**
+2. Enable the assistant and choose a provider preset
+3. Enter your **API key** and verify the **base URL / endpoint** and **model**
+4. Click **Test connection**, then go to **Chat**
+
+### Supported providers
+
+| Provider | Default endpoint | Get a key |
+|---|---|---|
+| **Google AI Studio (Gemini)** | `https://generativelanguage.googleapis.com/v1beta` | [aistudio.google.com/app/apikey](https://aistudio.google.com/app/apikey) |
+| **OpenAI** | `https://api.openai.com/v1` | [platform.openai.com/api-keys](https://platform.openai.com/api-keys) |
+| **Anthropic (Claude)** | `https://api.anthropic.com` | [console.anthropic.com/settings/keys](https://console.anthropic.com/settings/keys) |
+| OpenRouter | `https://openrouter.ai/api/v1` | [openrouter.ai/keys](https://openrouter.ai/keys) |
+| Ollama (local) | `http://localhost:11434/v1` | No key required |
+
+Recommended Gemini models: `gemini-2.0-flash`, `gemini-2.5-flash`. OpenAI: `gpt-4o-mini`. Claude: `claude-sonnet-4-20250514`.
+
+### Browser / CORS notes
+
+API keys and chat history are stored in **localStorage on your device only** — not in `.ftcheckpoint` files.
+
+- **Gemini**, **OpenRouter**, and **local Ollama** usually work from the browser.
+- **OpenAI** and **Anthropic** cloud APIs may block direct browser requests (CORS). If test connection fails, use OpenRouter, Ollama, or a CORS-enabled gateway.
+- For Ollama, set `OLLAMA_ORIGINS=*` before starting the server.
+
 ## GitHub Pages Deployment
 
 1. Push to `main` branch
@@ -132,8 +164,8 @@ uv run ft-test
 
 - No backend server
 - No analytics with financial data
-- No localStorage persistence of financial data (session only)
-- Checkpoint files are plain JSON on your filesystem
+- Checkpoint files are plain JSON on your filesystem — they do **not** contain AI API keys
+- Optional AI chat stores API keys and chat history in **browser localStorage only**; a portfolio summary is sent to your chosen provider when you ask a question
 
 ## License
 

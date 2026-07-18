@@ -13,6 +13,7 @@ import { InsurancePage } from '@/pages/InsurancePage';
 import { RetirementPage } from '@/pages/RetirementPage';
 import { AssetsPage } from '@/pages/AssetsPage';
 import { SettingsPage } from '@/pages/SettingsPage';
+import { ChatPage } from '@/pages/ChatPage';
 
 export function AppRoutes() {
   return (
@@ -31,6 +32,7 @@ export function AppRoutes() {
           <Route path="insurance" element={<InsurancePage />} />
           <Route path="retirement" element={<RetirementPage />} />
           <Route path="assets" element={<AssetsPage />} />
+          <Route path="chat" element={<ChatPage />} />
           <Route path="settings" element={<SettingsPage />} />
         </Route>
       </Routes>
