@@ -8,7 +8,6 @@ node_modules/
 *.local
 
 # Checkpoint files (never commit financial data)
-*.ftcheckpoint
 finance-checkpoint-*
 /checkpoints/
 
