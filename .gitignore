@@ -5,7 +5,6 @@ __pycache__/
 
 # Node / frontend
 node_modules/
-dist/
 *.local
 
 # Checkpoint files (never commit financial data)
