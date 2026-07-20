@@ -12,7 +12,7 @@ import { termInsuranceCoverage } from '@/services/analytics/netWorth';
 import type { CurrencyCode, InsurancePolicy, InsuranceType, RecurrenceFrequency } from '@/types';
 import { BucketTotalBar } from '@/components/ui/bucket-total-bar';
 import { todayDate } from '@/utils/ids';
-import { Pencil, Plus, Trash2 } from 'lucide-react';
+import { Icon } from '@/components/ui/icon';
 
 const types: InsuranceType[] = ['term', 'endowment', 'ulip', 'health', 'other'];
 
@@ -70,8 +70,8 @@ export function InsurancePage() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">Insurance</h2>
-        <Button onClick={openNew}><Plus className="h-4 w-4" /> Add</Button>
+        <h2 className="text-2xl font-medium tracking-tight">Insurance</h2>
+        <Button onClick={openNew}><Icon name="add" size="sm" /> Add</Button>
       </div>
       {items.length > 0 && (
         <BucketTotalBar
@@ -101,8 +101,8 @@ export function InsurancePage() {
                 </div>
                 <div className="flex items-center gap-3">
                   <span className="text-sm">{format(item.annualPremium, item.currency)}/yr</span>
-                  <Button variant="ghost" size="icon" onClick={() => openEdit(item)}><Pencil className="h-4 w-4" /></Button>
-                  <Button variant="ghost" size="icon" onClick={() => remove(item.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                  <Button variant="ghost" size="icon" onClick={() => openEdit(item)}><Icon name="edit" size="sm" /></Button>
+                  <Button variant="ghost" size="icon" onClick={() => remove(item.id)}><Icon name="delete" size="sm" className="text-destructive" /></Button>
                 </div>
               </CardContent>
             </Card>

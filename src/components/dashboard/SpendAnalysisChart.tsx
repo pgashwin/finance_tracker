@@ -1,6 +1,11 @@
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { WidgetGuide } from '@/components/dashboard/WidgetGuide';
+import { DashboardWidgetCard } from '@/components/dashboard/DashboardWidgetCard';
+import {
+  ChartPlot,
+  chartLegendProps,
+  MaterialChartTooltip,
+  pieProps,
+} from '@/components/dashboard/chartTheme';
 import type { WidgetGuideContent } from '@/content/dashboardGuides';
 import type { SpendAnalysis } from '@/services/analytics/portfolioAnalytics';
 import { useCurrency } from '@/hooks/useCurrency';
@@ -14,19 +19,22 @@ interface Props {
 
 export function SpendAnalysisChart({ analysis, guide }: Props) {
   const { formatCompact } = useCurrency();
-  const { categories, totalMonthly, fixedMonthly, discretionaryMonthly, investmentMonthly, savingsRate, surplusMonthly, incomeMonthly } = analysis;
+  const {
+    categories,
+    totalMonthly,
+    fixedMonthly,
+    discretionaryMonthly,
+    investmentMonthly,
+    savingsRate,
+    surplusMonthly,
+    incomeMonthly,
+  } = analysis;
 
   if (totalMonthly === 0) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Spend Analysis</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground">Add recurring expenses to analyze spending.</p>
-          {guide && <WidgetGuide guide={guide} />}
-        </CardContent>
-      </Card>
+      <DashboardWidgetCard title="Spend Analysis" guide={guide}>
+        <p className="text-sm text-muted-foreground">Add recurring expenses to analyze spending.</p>
+      </DashboardWidgetCard>
     );
   }
 
@@ -37,66 +45,122 @@ export function SpendAnalysisChart({ analysis, guide }: Props) {
   }));
 
   const natureData = [
-    { name: 'Fixed (EMI, rent, etc.)', value: fixedMonthly, color: MD3.error },
+    { name: 'Fixed', value: fixedMonthly, color: MD3.error },
     { name: 'Discretionary', value: discretionaryMonthly, color: MD3.warning },
-    { name: 'Investments (SIP)', value: investmentMonthly, color: MD3.success },
+    { name: 'Investments', value: investmentMonthly, color: MD3.success },
   ].filter((d) => d.value > 0);
 
+  const categoryTotal = categoryData.reduce((s, d) => s + d.value, 0);
+  const natureTotal = natureData.reduce((s, d) => s + d.value, 0);
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Spend Analysis</CardTitle>
+    <DashboardWidgetCard
+      title="Spend Analysis"
+      subtitle={
         <div className="flex flex-wrap gap-3 text-sm">
-          <span>Monthly: <strong>{formatCompact(totalMonthly)}</strong></span>
-          <span>Annual: <strong>{formatCompact(analysis.totalAnnual)}</strong></span>
+          <span>
+            Monthly: <strong className="text-foreground">{formatCompact(totalMonthly)}</strong>
+          </span>
+          <span>
+            Annual: <strong className="text-foreground">{formatCompact(analysis.totalAnnual)}</strong>
+          </span>
           {savingsRate != null && (
             <span className={savingsRate >= 20 ? 'text-success' : 'text-warning'}>
               Savings rate: <strong>{formatPercent(savingsRate)}</strong>
             </span>
           )}
           {surplusMonthly != null && incomeMonthly != null && (
-            <span>Surplus: <strong>{formatCompact(surplusMonthly)}/mo</strong></span>
+            <span>
+              Surplus: <strong className="text-foreground">{formatCompact(surplusMonthly)}/mo</strong>
+            </span>
           )}
         </div>
-      </CardHeader>
-      <CardContent>
-        <div className="grid gap-6 lg:grid-cols-2">
-          <div>
-            <p className="mb-2 text-xs font-medium text-muted-foreground">By category (monthly)</p>
-            <ResponsiveContainer width="100%" height={220}>
+      }
+      guide={guide}
+    >
+      <div className="grid gap-4 lg:grid-cols-2">
+        <div>
+          <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            By category
+          </p>
+          <ChartPlot height={236}>
+            <ResponsiveContainer width="100%" height="100%">
               <PieChart>
-                <Pie data={categoryData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={70} label={false}>
+                <Pie
+                  data={categoryData}
+                  dataKey="value"
+                  nameKey="name"
+                  cx="50%"
+                  cy="48%"
+                  innerRadius={44}
+                  outerRadius={76}
+                  paddingAngle={pieProps.paddingAngle}
+                  stroke={pieProps.stroke}
+                  strokeWidth={pieProps.strokeWidth}
+                >
                   {categoryData.map((entry) => (
                     <Cell key={entry.name} fill={entry.color} />
                   ))}
                 </Pie>
-                <Tooltip formatter={(v: number) => formatCompact(v)} />
-                <Legend wrapperStyle={{ fontSize: 11 }} />
+                <Tooltip
+                  content={
+                    <MaterialChartTooltip
+                      formatter={(v: number, name: string) => [
+                        `${formatCompact(v)} (${formatPercent(categoryTotal > 0 ? (v / categoryTotal) * 100 : 0)})`,
+                        name,
+                      ]}
+                    />
+                  }
+                />
+                <Legend {...chartLegendProps} wrapperStyle={{ ...chartLegendProps.wrapperStyle, fontSize: 10 }} />
               </PieChart>
             </ResponsiveContainer>
-          </div>
-          <div>
-            <p className="mb-2 text-xs font-medium text-muted-foreground">Fixed vs discretionary</p>
-            <ResponsiveContainer width="100%" height={220}>
+          </ChartPlot>
+        </div>
+        <div>
+          <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            Fixed vs discretionary
+          </p>
+          <ChartPlot height={236}>
+            <ResponsiveContainer width="100%" height="100%">
               <PieChart>
-                <Pie data={natureData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={70}>
+                <Pie
+                  data={natureData}
+                  dataKey="value"
+                  nameKey="name"
+                  cx="50%"
+                  cy="48%"
+                  innerRadius={44}
+                  outerRadius={76}
+                  paddingAngle={pieProps.paddingAngle}
+                  stroke={pieProps.stroke}
+                  strokeWidth={pieProps.strokeWidth}
+                >
                   {natureData.map((entry) => (
                     <Cell key={entry.name} fill={entry.color} />
                   ))}
                 </Pie>
-                <Tooltip formatter={(v: number) => formatCompact(v)} />
-                <Legend wrapperStyle={{ fontSize: 11 }} />
+                <Tooltip
+                  content={
+                    <MaterialChartTooltip
+                      formatter={(v: number, name: string) => [
+                        `${formatCompact(v)} (${formatPercent(natureTotal > 0 ? (v / natureTotal) * 100 : 0)})`,
+                        name,
+                      ]}
+                    />
+                  }
+                />
+                <Legend {...chartLegendProps} wrapperStyle={{ ...chartLegendProps.wrapperStyle, fontSize: 10 }} />
               </PieChart>
             </ResponsiveContainer>
-          </div>
+          </ChartPlot>
         </div>
-        {!incomeMonthly && (
-          <p className="mt-3 text-xs text-muted-foreground">
-            Set monthly income in Settings to see savings rate and surplus.
-          </p>
-        )}
-        {guide && <WidgetGuide guide={guide} />}
-      </CardContent>
-    </Card>
+      </div>
+      {!incomeMonthly && (
+        <p className="mt-3 text-xs text-muted-foreground">
+          Set monthly income in Settings to see savings rate and surplus.
+        </p>
+      )}
+    </DashboardWidgetCard>
   );
 }

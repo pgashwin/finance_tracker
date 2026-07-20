@@ -2,7 +2,6 @@ import { useFinanceStore } from '@/store/financeStore';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select } from '@/components/ui/select';
 import { CurrencySelect } from '@/components/ui/currency-select';
 import { SUPPORTED_CURRENCIES } from '@/constants/currencies';
 import type { CurrencyCode } from '@/types';
@@ -33,7 +32,7 @@ export function SettingsPage() {
 
   return (
     <div className="mx-auto max-w-lg space-y-6">
-      <h2 className="text-2xl font-bold">Settings</h2>
+      <h2 className="text-2xl font-medium tracking-tight text-foreground">Settings</h2>
       <Card>
         <CardHeader>
           <CardTitle>Profile</CardTitle>
@@ -106,22 +105,9 @@ export function SettingsPage() {
       </Card>
       <Card>
         <CardHeader>
-          <CardTitle>Appearance</CardTitle>
+          <CardTitle>Display</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div>
-            <Label>Theme</Label>
-            <Select
-              value={settings.theme}
-              onChange={(e) =>
-                updateSettings({ theme: e.target.value as 'light' | 'dark' | 'system' })
-              }
-            >
-              <option value="system">System</option>
-              <option value="light">Light</option>
-              <option value="dark">Dark</option>
-            </Select>
-          </div>
           <label className="flex items-center gap-2 text-sm">
             <input
               type="checkbox"

@@ -22,7 +22,7 @@ interface FinanceStore {
   isDirty: boolean;
   loadedFileName: string | null;
   hasLoadedCheckpoint: boolean;
-  toast: string | null;
+  toast: { message: string; id: number } | null;
 
   setState: (state: FinanceState) => void;
   markClean: (fileName?: string) => void;
@@ -101,7 +101,7 @@ export const useFinanceStore = create<FinanceStore>((set, get) => ({
   markClean: (fileName) =>
     set({ isDirty: false, hasLoadedCheckpoint: true, loadedFileName: fileName ?? get().loadedFileName }),
   markDirty: () => set({ isDirty: true }),
-  showToast: (message) => set({ toast: message }),
+  showToast: (message) => set({ toast: { message, id: Date.now() } }),
   clearToast: () => set({ toast: null }),
   resetToEmpty: () =>
     set({

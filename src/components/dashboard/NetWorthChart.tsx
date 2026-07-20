@@ -1,14 +1,15 @@
+import { useId } from 'react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area } from 'recharts';
+import { DashboardWidgetCard } from '@/components/dashboard/DashboardWidgetCard';
 import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from 'recharts';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { WidgetGuide } from '@/components/dashboard/WidgetGuide';
+  ChartPlot,
+  chartAxisProps,
+  chartGridProps,
+  chartMargin,
+  CHART_PRIMARY_LINE,
+  lineProps,
+  MaterialChartTooltip,
+} from '@/components/dashboard/chartTheme';
 import type { WidgetGuideContent } from '@/content/dashboardGuides';
 import type { MonthlySnapshot } from '@/types';
 import { useCurrency } from '@/hooks/useCurrency';
@@ -23,39 +24,57 @@ export function NetWorthChart({ snapshots, guide }: Props) {
 
   if (snapshots.length < 2) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Net Worth Trend</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground">
-            Record monthly snapshots to see your net worth trend.
-          </p>
-          {guide && <WidgetGuide guide={guide} />}
-        </CardContent>
-      </Card>
+      <DashboardWidgetCard title="Net Worth Trend" guide={guide}>
+        <p className="text-sm text-muted-foreground">
+          Record monthly snapshots to see your net worth trend.
+        </p>
+      </DashboardWidgetCard>
     );
   }
 
   const data = [...snapshots].sort((a, b) => a.month.localeCompare(b.month));
+  const gradientId = useId().replace(/:/g, '');
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Net Worth Trend</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <ResponsiveContainer width="100%" height={260}>
-          <LineChart data={data}>
-            <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-            <XAxis dataKey="month" tick={{ fontSize: 12 }} />
-            <YAxis tickFormatter={(v) => formatCompact(v)} tick={{ fontSize: 12 }} width={70} />
-            <Tooltip formatter={(v: number) => formatCompact(v)} />
-            <Line type="monotone" dataKey="netWorth" stroke="hsl(var(--primary))" strokeWidth={2} dot />
+    <DashboardWidgetCard title="Net Worth Trend" guide={guide}>
+      <ChartPlot height={268}>
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart data={data} margin={chartMargin}>
+            <defs>
+              <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor={CHART_PRIMARY_LINE} stopOpacity={0.18} />
+                <stop offset="100%" stopColor={CHART_PRIMARY_LINE} stopOpacity={0} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid {...chartGridProps} />
+            <XAxis dataKey="month" {...chartAxisProps} />
+            <YAxis
+              {...chartAxisProps}
+              tickFormatter={(v) => formatCompact(v)}
+              width={68}
+            />
+            <Tooltip
+              content={<MaterialChartTooltip formatter={(v: number) => [formatCompact(v), 'Net worth']} />}
+            />
+            <Area
+              type={lineProps.type}
+              dataKey="netWorth"
+              stroke="none"
+              fill={`url(#${gradientId})`}
+              isAnimationActive={false}
+            />
+            <Line
+              dataKey="netWorth"
+              name="Net worth"
+              stroke={CHART_PRIMARY_LINE}
+              strokeWidth={lineProps.strokeWidth}
+              type={lineProps.type}
+              dot={lineProps.dot}
+              activeDot={lineProps.activeDot}
+            />
           </LineChart>
         </ResponsiveContainer>
-        {guide && <WidgetGuide guide={guide} />}
-      </CardContent>
-    </Card>
+      </ChartPlot>
+    </DashboardWidgetCard>
   );
 }

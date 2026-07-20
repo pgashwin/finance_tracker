@@ -1,6 +1,14 @@
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { WidgetGuide } from '@/components/dashboard/WidgetGuide';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, CartesianGrid } from 'recharts';
+import { DashboardWidgetCard } from '@/components/dashboard/DashboardWidgetCard';
+import {
+  ChartPlot,
+  chartAxisProps,
+  chartBarRadius,
+  chartGridProps,
+  chartMargin,
+  chartTickSmall,
+  MaterialChartTooltip,
+} from '@/components/dashboard/chartTheme';
 import type { WidgetGuideContent } from '@/content/dashboardGuides';
 import type { FinanceBucketRow } from '@/services/analytics/portfolioAnalytics';
 import { useCurrency } from '@/hooks/useCurrency';
@@ -16,15 +24,9 @@ export function FinanceBucketsChart({ data, guide }: Props) {
 
   if (!data.length) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Finance Buckets</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground">Add financial data to see bucket summary.</p>
-          {guide && <WidgetGuide guide={guide} />}
-        </CardContent>
-      </Card>
+      <DashboardWidgetCard title="Finance Buckets" guide={guide}>
+        <p className="text-sm text-muted-foreground">Add financial data to see bucket summary.</p>
+      </DashboardWidgetCard>
     );
   }
 
@@ -36,31 +38,49 @@ export function FinanceBucketsChart({ data, guide }: Props) {
   }));
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Finance Buckets</CardTitle>
+    <DashboardWidgetCard
+      title="Finance Buckets"
+      subtitle={
         <p className="text-sm text-muted-foreground">Where your money lives across asset classes</p>
-      </CardHeader>
-      <CardContent>
-        <ResponsiveContainer width="100%" height={280}>
-          <BarChart data={chartData} layout="vertical" margin={{ left: 8, right: 16 }}>
-            <XAxis type="number" tickFormatter={(v) => formatCompact(v)} />
-            <YAxis type="category" dataKey="bucket" width={110} tick={{ fontSize: 11 }} />
-            <Tooltip
-              formatter={(v: number, _n, props) => [
-                `${formatCompact(v)} (${formatPercent(props.payload.percent)})`,
-                'Value',
-              ]}
+      }
+      guide={guide}
+    >
+      <ChartPlot height={300}>
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={chartData} layout="vertical" margin={{ ...chartMargin, left: 8, right: 20 }}>
+            <CartesianGrid {...chartGridProps} horizontal={false} vertical />
+            <XAxis
+              type="number"
+              {...chartAxisProps}
+              tickFormatter={(v) => formatCompact(v)}
             />
-            <Bar dataKey="value" name="Current value" radius={[0, 4, 4, 0]}>
+            <YAxis
+              type="category"
+              dataKey="bucket"
+              {...chartAxisProps}
+              tick={chartTickSmall}
+              width={108}
+            />
+            <Tooltip
+              cursor={{ fill: 'hsl(212 40% 96% / 0.45)' }}
+              content={
+                <MaterialChartTooltip
+                  formatter={(v: number, _n, props) => [
+                    `${formatCompact(v)} (${formatPercent(props.payload.percent)})`,
+                    'Value',
+                  ]}
+                  labelFormatter={(label) => String(label)}
+                />
+              }
+            />
+            <Bar dataKey="value" name="Current value" radius={chartBarRadius} barSize={22} maxBarSize={28}>
               {chartData.map((entry) => (
                 <Cell key={entry.bucket} fill={entry.color} />
               ))}
             </Bar>
           </BarChart>
         </ResponsiveContainer>
-        {guide && <WidgetGuide guide={guide} />}
-      </CardContent>
-    </Card>
+      </ChartPlot>
+    </DashboardWidgetCard>
   );
 }

@@ -15,6 +15,7 @@ import { AssetsLiabilitiesChart } from '@/components/dashboard/AssetsLiabilities
 import { CashFlowChart } from '@/components/dashboard/CashFlowChart';
 import { MetricGuideRow, WidgetGuide } from '@/components/dashboard/WidgetGuide';
 import { Button } from '@/components/ui/button';
+import { Tooltip } from '@/components/ui/tooltip';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   WIDGET_GUIDES,
@@ -43,7 +44,7 @@ import {
 import { generateInsights } from '@/services/analytics/insights';
 import { useCurrency } from '@/hooks/useCurrency';
 import { formatPercent } from '@/utils/currency';
-import { TrendingUp, Wallet, CreditCard, Repeat, Camera } from 'lucide-react';
+import { Icon } from '@/components/ui/icon';
 
 export function DashboardPage() {
   const state = useFinanceStore((s) => s.state);
@@ -81,7 +82,10 @@ export function DashboardPage() {
       const loaded = deserializeState(json);
       setState(loaded);
       markClean('demo.ftcheckpoint');
-      showToast(checkpointSummary(loaded));
+      // Defer toast until after the dashboard re-renders from empty → loaded.
+      requestAnimationFrame(() => {
+        showToast(checkpointSummary(loaded, 'Demo data loaded'));
+      });
     } catch {
       showToast('Failed to load demo data');
     }
@@ -89,8 +93,11 @@ export function DashboardPage() {
 
   if (isEmpty && !hasLoadedCheckpoint) {
     return (
-      <div className="mx-auto max-w-lg space-y-6 py-12 text-center">
-        <h2 className="text-2xl font-bold">Welcome to Finance Tracker</h2>
+      <div className="mx-auto max-w-lg space-y-6 py-12 text-center animate-fade-in">
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-primary-container text-primary-container-foreground">
+          <Icon name="account_balance" size="xl" filled />
+        </div>
+        <h2 className="text-2xl font-medium">Welcome to Finance Tracker</h2>
         <p className="text-muted-foreground">
           Your privacy-first personal finance dashboard. All data stays on your device — load an
           existing checkpoint or start adding your financial information.
@@ -111,25 +118,27 @@ export function DashboardPage() {
     <div className="space-y-8">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-2xl font-bold">Dashboard</h2>
+          <h2 className="text-2xl font-medium tracking-tight">Dashboard</h2>
           {state.profile.displayName && (
             <p className="text-muted-foreground">Hello, {state.profile.displayName}</p>
           )}
         </div>
-        <Button variant="outline" onClick={recordMonthlySnapshot}>
-          <Camera className="h-4 w-4" />
-          Record snapshot
-        </Button>
+        <Tooltip label="Saves this month's net worth (assets minus liabilities) so you can track progress on the Net Worth chart.">
+          <Button variant="outline" onClick={recordMonthlySnapshot}>
+            <Icon name="photo_camera" size="sm" />
+            Record snapshot
+          </Button>
+        </Tooltip>
       </div>
 
       <section className="space-y-4">
         <h3 className="text-lg font-semibold">Overview</h3>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="stagger-children grid items-stretch gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <KpiCard
             title="Net Worth"
             value={fmt(nw)}
             trend={nw >= 0 ? 'positive' : 'negative'}
-            icon={<TrendingUp className="h-4 w-4 text-muted-foreground" />}
+            icon={<Icon name="trending_up" size="sm" filled />}
             guide={WIDGET_GUIDES.netWorth}
             assessment={overview.netWorth}
           />
@@ -137,7 +146,7 @@ export function DashboardPage() {
             title="Liquid Assets"
             value={fmt(totalLiquidAssets(state))}
             subtitle={`Liquidity: ${formatPercent(liquidityRatio(state))}`}
-            icon={<Wallet className="h-4 w-4 text-muted-foreground" />}
+            icon={<Icon name="account_balance_wallet" size="sm" filled />}
             guide={WIDGET_GUIDES.liquidAssets}
             assessment={overview.liquid}
           />
@@ -145,8 +154,7 @@ export function DashboardPage() {
             title="Total Debt"
             value={fmt(totalLiabilities(state))}
             subtitle={`Debt/Assets: ${formatPercent(debtToAssetRatio(state))}`}
-            trend="negative"
-            icon={<CreditCard className="h-4 w-4 text-muted-foreground" />}
+            icon={<Icon name="credit_card" size="sm" filled />}
             guide={WIDGET_GUIDES.totalDebt}
             assessment={overview.debt}
           />
@@ -156,7 +164,7 @@ export function DashboardPage() {
             subtitle={
               emiBurden != null ? `EMI burden: ${formatPercent(emiBurden)}` : 'Set income in Settings'
             }
-            icon={<Repeat className="h-4 w-4 text-muted-foreground" />}
+            icon={<Icon name="payments" size="sm" filled />}
             guide={WIDGET_GUIDES.monthlyOutflow}
             assessment={overview.outflow}
           />
@@ -165,7 +173,7 @@ export function DashboardPage() {
 
       <section className="space-y-4">
         <h3 className="text-lg font-semibold">Profit & Loss</h3>
-        <div className="grid gap-4 lg:grid-cols-2">
+        <div className="grid items-stretch gap-4 lg:grid-cols-2">
           <PnLBreakdownChart
             data={pnlSummary.breakdown}
             totalPnl={pnlSummary.totalPnl}
@@ -177,11 +185,11 @@ export function DashboardPage() {
 
       <section className="space-y-4">
         <h3 className="text-lg font-semibold">Asset Buckets & Allocation</h3>
-        <div className="grid gap-4 lg:grid-cols-2">
+        <div className="grid items-stretch gap-4 lg:grid-cols-2">
           <FinanceBucketsChart data={buckets} guide={WIDGET_GUIDES.financeBuckets} />
           <AssetAllocationChart data={assetAllocation(state)} guide={WIDGET_GUIDES.assetAllocation} />
         </div>
-        <div className="grid gap-4 lg:grid-cols-2">
+        <div className="grid items-stretch gap-4 lg:grid-cols-2">
           <AssetsLiabilitiesChart
             assets={assetsLiabilities.assets}
             liabilities={assetsLiabilities.liabilities}
@@ -194,7 +202,7 @@ export function DashboardPage() {
 
       <section className="space-y-4">
         <h3 className="text-lg font-semibold">Spending & Cash Flow</h3>
-        <div className="grid gap-4 lg:grid-cols-2">
+        <div className="grid items-stretch gap-4 lg:grid-cols-2">
           <SpendAnalysisChart analysis={spend} guide={WIDGET_GUIDES.spendAnalysis} />
           <CashFlowChart
             income={spend.incomeMonthly}
@@ -209,11 +217,11 @@ export function DashboardPage() {
 
       <section className="space-y-4">
         <h3 className="text-lg font-semibold">Ratios & Alerts</h3>
-        <Card>
+        <Card className="flex h-full flex-col">
           <CardHeader>
             <CardTitle>Key Ratios</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="flex flex-col gap-6">
             <dl className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {ratioAssessments.map((metric) => (
                 <MetricGuideRow
@@ -233,10 +241,10 @@ export function DashboardPage() {
                 status={overview.pnl.status}
               />
             </dl>
-            <WidgetGuide guide={WIDGET_GUIDES.keyRatios} />
+            <WidgetGuide guide={WIDGET_GUIDES.keyRatios} className="mt-0" />
           </CardContent>
         </Card>
-        <div className="grid gap-4 lg:grid-cols-2">
+        <div className="grid items-stretch gap-4 lg:grid-cols-2">
           <UpcomingMaturities items={upcomingMaturities(state)} guide={WIDGET_GUIDES.upcomingMaturities} />
           <InsightsPanel insights={insights} guide={WIDGET_GUIDES.insights} />
         </div>

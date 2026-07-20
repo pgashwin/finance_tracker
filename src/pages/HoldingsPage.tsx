@@ -12,7 +12,7 @@ import { holdingCurrentValue, holdingGainLoss, holdingInvestedValue } from '@/se
 import type { CurrencyCode, Holding } from '@/types';
 import { BucketTotalBar } from '@/components/ui/bucket-total-bar';
 import { nowIso } from '@/utils/ids';
-import { Pencil, Plus, Trash2, Upload } from 'lucide-react';
+import { Icon } from '@/components/ui/icon';
 
 export function HoldingsPage() {
   const items = useFinanceStore((s) => s.state.holdings);
@@ -87,10 +87,10 @@ export function HoldingsPage() {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 className="text-2xl font-bold">Holdings</h2>
+        <h2 className="text-2xl font-medium tracking-tight">Holdings</h2>
         <div className="flex gap-2">
-          <Link to="/holdings/import"><Button variant="outline"><Upload className="h-4 w-4" /> Import Zerodha</Button></Link>
-          <Button onClick={openNew}><Plus className="h-4 w-4" /> Add</Button>
+          <Link to="/holdings/import"><Button variant="outline"><Icon name="upload" size="sm" /> Import Zerodha</Button></Link>
+          <Button onClick={openNew}><Icon name="add" size="sm" /> Add</Button>
         </div>
       </div>
       {items.length > 0 && (
@@ -135,8 +135,8 @@ export function HoldingsPage() {
                     <td className="p-2">{format(holdingCurrentValue(item), item.currency)}</td>
                     <td className={`p-2 ${pnl >= 0 ? 'text-success' : 'text-destructive'}`}>{format(pnl, item.currency)}</td>
                     <td className="p-2">
-                      <Button variant="ghost" size="icon" onClick={() => openEdit(item)}><Pencil className="h-4 w-4" /></Button>
-                      <Button variant="ghost" size="icon" onClick={() => remove(item.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                      <Button variant="ghost" size="icon" onClick={() => openEdit(item)}><Icon name="edit" size="sm" /></Button>
+                      <Button variant="ghost" size="icon" onClick={() => remove(item.id)}><Icon name="delete" size="sm" className="text-destructive" /></Button>
                     </td>
                   </tr>
                 );

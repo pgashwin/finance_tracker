@@ -1,6 +1,21 @@
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { WidgetGuide } from '@/components/dashboard/WidgetGuide';
+import { DashboardWidgetCard } from '@/components/dashboard/DashboardWidgetCard';
+import {
+  ChartDataTable,
+  ChartPlot,
+  ChartTableBody,
+  ChartTableHead,
+  ChartTableRow,
+  ChartTableTd,
+  ChartTableTh,
+  chartAxisProps,
+  chartBarRadius,
+  chartBarSize,
+  chartGridProps,
+  chartMarginRotatedLabels,
+  chartTickSmall,
+  MaterialChartTooltip,
+} from '@/components/dashboard/chartTheme';
 import type { WidgetGuideContent } from '@/content/dashboardGuides';
 import type { InvestmentComparisonRow } from '@/services/analytics/portfolioAnalytics';
 import { CHART_NEGATIVE } from '@/constants/chartColors';
@@ -17,17 +32,11 @@ export function InvestmentComparisonChart({ data, guide }: Props) {
 
   if (!data.length) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Investment Type Comparison</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground">
-            Add investments with cost basis to compare returns across types.
-          </p>
-          {guide && <WidgetGuide guide={guide} />}
-        </CardContent>
-      </Card>
+      <DashboardWidgetCard title="Investment Type Comparison" guide={guide}>
+        <p className="text-sm text-muted-foreground">
+          Add investments with cost basis to compare returns across types.
+        </p>
+      </DashboardWidgetCard>
     );
   }
 
@@ -42,69 +51,87 @@ export function InvestmentComparisonChart({ data, guide }: Props) {
   const best = data[0];
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Investment Type Comparison</CardTitle>
-        {best && (
+    <DashboardWidgetCard
+      title="Investment Type Comparison"
+      subtitle={
+        best ? (
           <p className="text-sm text-muted-foreground">
-            Top performer: <strong>{best.type}</strong>
-            {best.roiPercent != null && ` (${formatPercent(best.roiPercent)}${best.type.includes('rate') ? ' p.a.' : ''})`}
+            Top performer: <strong className="text-foreground">{best.type}</strong>
+            {best.roiPercent != null &&
+              ` (${formatPercent(best.roiPercent)}${best.type.includes('rate') ? ' p.a.' : ''})`}
           </p>
-        )}
-      </CardHeader>
-      <CardContent>
-        <ResponsiveContainer width="100%" height={260}>
-          <BarChart data={chartData} margin={{ bottom: 8 }}>
-            <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-            <XAxis dataKey="type" tick={{ fontSize: 10 }} interval={0} angle={-12} textAnchor="end" height={56} />
-            <YAxis tickFormatter={(v) => `${v.toFixed(0)}%`} width={48} />
-            <Tooltip
-              formatter={(v: number, _n, props) => {
-                const row = props.payload;
-                if (row.isRate) return [`${v.toFixed(2)}% p.a.`, 'Interest rate'];
-                return [`${v.toFixed(2)}%`, 'ROI'];
+        ) : undefined
+      }
+      guide={guide}
+    >
+      <ChartPlot height={272}>
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={chartData} margin={chartMarginRotatedLabels} barCategoryGap="20%">
+            <CartesianGrid {...chartGridProps} />
+            <XAxis
+              dataKey="type"
+              {...chartAxisProps}
+              tick={chartTickSmall}
+              interval={0}
+              angle={-18}
+              textAnchor="end"
+              height={52}
+            />
+            <YAxis
+              {...chartAxisProps}
+              tickFormatter={(v) => `${v.toFixed(0)}%`}
+              width={44}
+              label={{
+                value: 'Return %',
+                angle: -90,
+                position: 'insideLeft',
+                style: { fill: chartTickSmall.fill, fontSize: 11, fontFamily: 'Roboto' },
               }}
             />
-            <Bar dataKey="roi" name="Return %" radius={[4, 4, 0, 0]}>
-              {chartData.map((entry) => (
-                <Cell
-                  key={entry.type}
-                  fill={entry.roi >= 0 ? entry.color : CHART_NEGATIVE}
+            <Tooltip
+              cursor={{ fill: 'hsl(212 40% 96% / 0.5)' }}
+              content={
+                <MaterialChartTooltip
+                  formatter={(v: number, _n, props) => {
+                    const row = props.payload as { isRate?: boolean };
+                    if (row.isRate) return [`${v.toFixed(2)}% p.a.`, 'Interest rate'];
+                    return [`${v.toFixed(2)}%`, 'ROI'];
+                  }}
                 />
+              }
+            />
+            <Bar dataKey="roi" name="Return %" radius={chartBarRadius} barSize={chartBarSize} maxBarSize={40}>
+              {chartData.map((entry) => (
+                <Cell key={entry.type} fill={entry.roi >= 0 ? entry.color : CHART_NEGATIVE} />
               ))}
             </Bar>
           </BarChart>
         </ResponsiveContainer>
-        <div className="mt-3 overflow-x-auto">
-          <table className="w-full text-xs">
-            <thead>
-              <tr className="border-b text-left text-muted-foreground">
-                <th className="p-2">Type</th>
-                <th className="p-2">Invested</th>
-                <th className="p-2">P&L</th>
-                <th className="p-2">Return</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data.map((row) => (
-                <tr key={row.type} className="border-b">
-                  <td className="p-2">{row.type}</td>
-                  <td className="p-2">{formatCompact(row.invested)}</td>
-                  <td className={`p-2 ${row.pnl >= 0 ? 'text-success' : 'text-destructive'}`}>
-                    {formatCompact(row.pnl)}
-                  </td>
-                  <td className="p-2">
-                    {row.roiPercent != null
-                      ? `${formatPercent(row.roiPercent)}${row.type.includes('rate') ? ' p.a.' : ''}`
-                      : '—'}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        {guide && <WidgetGuide guide={guide} />}
-      </CardContent>
-    </Card>
+      </ChartPlot>
+      <ChartDataTable>
+        <ChartTableHead>
+          <ChartTableTh>Type</ChartTableTh>
+          <ChartTableTh>Invested</ChartTableTh>
+          <ChartTableTh>P&L</ChartTableTh>
+          <ChartTableTh>Return</ChartTableTh>
+        </ChartTableHead>
+        <ChartTableBody>
+          {data.map((row) => (
+            <ChartTableRow key={row.type}>
+              <ChartTableTd>{row.type}</ChartTableTd>
+              <ChartTableTd>{formatCompact(row.invested)}</ChartTableTd>
+              <ChartTableTd className={row.pnl >= 0 ? 'text-success' : 'text-destructive'}>
+                {formatCompact(row.pnl)}
+              </ChartTableTd>
+              <ChartTableTd>
+                {row.roiPercent != null
+                  ? `${formatPercent(row.roiPercent)}${row.type.includes('rate') ? ' p.a.' : ''}`
+                  : '—'}
+              </ChartTableTd>
+            </ChartTableRow>
+          ))}
+        </ChartTableBody>
+      </ChartDataTable>
+    </DashboardWidgetCard>
   );
 }

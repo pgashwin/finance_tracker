@@ -1,6 +1,14 @@
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { WidgetGuide } from '@/components/dashboard/WidgetGuide';
+import { DashboardWidgetCard } from '@/components/dashboard/DashboardWidgetCard';
+import {
+  ChartPlot,
+  chartAxisProps,
+  chartBarRadius,
+  chartBarSize,
+  chartGridProps,
+  chartMargin,
+  MaterialChartTooltip,
+} from '@/components/dashboard/chartTheme';
 import type { WidgetGuideContent } from '@/content/dashboardGuides';
 import { CASH_FLOW_COLORS } from '@/constants/chartColors';
 import { useCurrency } from '@/hooks/useCurrency';
@@ -18,20 +26,14 @@ export function CashFlowChart({ income, expenses, surplus, investmentSip, guide 
 
   if (income == null) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Monthly Cash Flow</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground">
-            Set monthly income in Settings to see income vs expenses breakdown.
-          </p>
-          <p className="mt-2 text-sm">
-            Current monthly outflow: <strong>{formatCompact(expenses)}</strong>
-          </p>
-          {guide && <WidgetGuide guide={guide} />}
-        </CardContent>
-      </Card>
+      <DashboardWidgetCard title="Monthly Cash Flow" guide={guide}>
+        <p className="text-sm text-muted-foreground">
+          Set monthly income in Settings to see income vs expenses breakdown.
+        </p>
+        <p className="mt-2 text-sm">
+          Current monthly outflow: <strong className="text-foreground">{formatCompact(expenses)}</strong>
+        </p>
+      </DashboardWidgetCard>
     );
   }
 
@@ -43,32 +45,38 @@ export function CashFlowChart({ income, expenses, surplus, investmentSip, guide 
   ].filter((d) => d.value > 0);
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Monthly Cash Flow</CardTitle>
+    <DashboardWidgetCard
+      title="Monthly Cash Flow"
+      subtitle={
         <p className="text-sm text-muted-foreground">
           Surplus after recurring expenses:{' '}
           <strong className={(surplus ?? 0) >= 0 ? 'text-success' : 'text-destructive'}>
             {formatCompact(surplus ?? 0)}
           </strong>
         </p>
-      </CardHeader>
-      <CardContent>
-        <ResponsiveContainer width="100%" height={220}>
-          <BarChart data={chartData}>
-            <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-            <XAxis dataKey="name" tick={{ fontSize: 11 }} />
-            <YAxis tickFormatter={(v) => formatCompact(v)} width={72} />
-            <Tooltip formatter={(v: number) => formatCompact(v)} />
-            <Bar dataKey="value" name="Amount" radius={[4, 4, 0, 0]}>
+      }
+      guide={guide}
+    >
+      <ChartPlot height={248}>
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={chartData} margin={chartMargin} barCategoryGap="22%">
+            <CartesianGrid {...chartGridProps} />
+            <XAxis dataKey="name" {...chartAxisProps} />
+            <YAxis {...chartAxisProps} tickFormatter={(v) => formatCompact(v)} width={68} />
+            <Tooltip
+              cursor={{ fill: 'hsl(212 40% 96% / 0.5)' }}
+              content={
+                <MaterialChartTooltip formatter={(v: number, name: string) => [formatCompact(v), name]} />
+              }
+            />
+            <Bar dataKey="value" name="Amount" radius={chartBarRadius} barSize={chartBarSize} maxBarSize={48}>
               {chartData.map((entry) => (
                 <Cell key={entry.name} fill={entry.color} />
               ))}
             </Bar>
           </BarChart>
         </ResponsiveContainer>
-        {guide && <WidgetGuide guide={guide} />}
-      </CardContent>
-    </Card>
+      </ChartPlot>
+    </DashboardWidgetCard>
   );
 }

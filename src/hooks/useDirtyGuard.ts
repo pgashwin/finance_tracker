@@ -16,25 +16,10 @@ export function useDirtyGuard() {
   }, [isDirty]);
 }
 
-export function useThemeEffect() {
-  const theme = useFinanceStore((s) => s.state.settings.theme);
-
+/** Single light theme — strip any persisted dark class from older sessions. */
+export function useLightThemeOnly() {
   useEffect(() => {
-    const root = document.documentElement;
-    const apply = (dark: boolean) => {
-      root.classList.toggle('dark', dark);
-    };
-
-    if (theme === 'dark') {
-      apply(true);
-    } else if (theme === 'light') {
-      apply(false);
-    } else {
-      const mq = window.matchMedia('(prefers-color-scheme: dark)');
-      apply(mq.matches);
-      const listener = (e: MediaQueryListEvent) => apply(e.matches);
-      mq.addEventListener('change', listener);
-      return () => mq.removeEventListener('change', listener);
-    }
-  }, [theme]);
+    document.documentElement.classList.remove('dark');
+    document.documentElement.style.colorScheme = 'light';
+  }, []);
 }

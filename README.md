@@ -17,8 +17,7 @@ After enabling GitHub Pages, the app will be available at:
 - Zerodha holdings import (CSV/XLSX upload)
 - Local checkpoint save/load — no cloud storage
 - Works on desktop and mobile browsers
-- Dark mode support
-- **Portfolio Chat (BYOK)** — ask questions about your finances using your own Gemini, OpenAI, or Claude API key
+- **AI Assistant (BYOK)** — ask questions about your finances using your own Gemini, OpenAI, or Claude API key
 
 ## Quick Start
 
@@ -116,16 +115,16 @@ uv run ft-test
 2. Download your holdings report from Zerodha Console (CSV or XLSX)
 3. Upload the file, preview rows, and confirm import
 
-## Portfolio Chat (BYOK)
+## AI Assistant (BYOK)
 
-The **Chat** page lets you ask questions about your portfolio using an AI provider you configure. Your checkpoint file is never uploaded — only a summarized snapshot (net worth, ratios, allocation, top holdings, etc.) is sent with each question.
+The **AI Assistant** page lets you ask questions about your portfolio using an AI provider you configure. Your checkpoint file is never uploaded — only a summarized snapshot (net worth, ratios, allocation, top holdings, etc.) is sent with each question.
 
 ### Setup
 
 1. Open **Settings → AI Assistant (BYOK)**
 2. Enable the assistant and choose a provider preset
 3. Enter your **API key** and verify the **base URL / endpoint** and **model**
-4. Click **Test connection**, then go to **Chat**
+4. Click **Test connection**, then go to **AI Assistant**
 
 ### Supported providers
 

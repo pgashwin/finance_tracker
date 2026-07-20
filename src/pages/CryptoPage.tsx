@@ -13,7 +13,7 @@ import { cryptoCurrentValue, cryptoGainLoss, cryptoInvestedValue, totalCryptoVal
 import type { CryptoHolding, CurrencyCode } from '@/types';
 import { BucketTotalBar } from '@/components/ui/bucket-total-bar';
 import { nowIso } from '@/utils/ids';
-import { Pencil, Plus, Trash2, Upload } from 'lucide-react';
+import { Icon } from '@/components/ui/icon';
 
 export function CryptoPage() {
   const state = useFinanceStore((s) => s.state);
@@ -88,15 +88,15 @@ export function CryptoPage() {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 className="text-2xl font-bold">Crypto</h2>
+        <h2 className="text-2xl font-medium tracking-tight">Crypto</h2>
         <div className="flex gap-2">
           <Link to="/crypto/import">
             <Button variant="outline">
-              <Upload className="h-4 w-4" /> Import CoinDCX
+              <Icon name="upload" size="sm" /> Import CoinDCX
             </Button>
           </Link>
           <Button onClick={openNew}>
-            <Plus className="h-4 w-4" /> Add
+            <Icon name="add" size="sm" /> Add
           </Button>
         </div>
       </div>
@@ -147,10 +147,10 @@ export function CryptoPage() {
                     </td>
                     <td className="p-2">
                       <Button variant="ghost" size="icon" onClick={() => openEdit(item)}>
-                        <Pencil className="h-4 w-4" />
+                        <Icon name="edit" size="sm" />
                       </Button>
                       <Button variant="ghost" size="icon" onClick={() => remove(item.id)}>
-                        <Trash2 className="h-4 w-4 text-destructive" />
+                        <Icon name="delete" size="sm" className="text-destructive" />
                       </Button>
                     </td>
                   </tr>

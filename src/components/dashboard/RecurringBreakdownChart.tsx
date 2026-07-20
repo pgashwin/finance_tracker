@@ -1,6 +1,15 @@
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { WidgetGuide } from '@/components/dashboard/WidgetGuide';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
+import { DashboardWidgetCard } from '@/components/dashboard/DashboardWidgetCard';
+import {
+  ChartPlot,
+  chartAxisProps,
+  chartBarRadius,
+  chartGridProps,
+  chartMargin,
+  chartTickSmall,
+  CHART_PRIMARY_LINE,
+  MaterialChartTooltip,
+} from '@/components/dashboard/chartTheme';
 import type { WidgetGuideContent } from '@/content/dashboardGuides';
 import type { RecurringBreakdown } from '@/services/analytics/netWorth';
 import { useCurrency } from '@/hooks/useCurrency';
@@ -19,34 +28,43 @@ export function RecurringBreakdownChart({ data, guide }: Props) {
 
   if (!chartData.length) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Monthly Recurring</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground">Add recurring expenses to see breakdown.</p>
-          {guide && <WidgetGuide guide={guide} />}
-        </CardContent>
-      </Card>
+      <DashboardWidgetCard title="Monthly Recurring" guide={guide}>
+        <p className="text-sm text-muted-foreground">Add recurring expenses to see breakdown.</p>
+      </DashboardWidgetCard>
     );
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Monthly Recurring</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <ResponsiveContainer width="100%" height={260}>
-          <BarChart data={chartData} layout="vertical" margin={{ left: 20 }}>
-            <XAxis type="number" tickFormatter={(v) => format(v)} />
-            <YAxis type="category" dataKey="category" width={100} tick={{ fontSize: 11 }} />
-            <Tooltip formatter={(v: number) => format(v)} />
-            <Bar dataKey="amount" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
+    <DashboardWidgetCard title="Monthly Recurring" guide={guide}>
+      <ChartPlot height={268}>
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={chartData} layout="vertical" margin={{ ...chartMargin, left: 4, right: 16 }}>
+            <CartesianGrid {...chartGridProps} horizontal={false} vertical />
+            <XAxis type="number" {...chartAxisProps} tickFormatter={(v) => format(v)} />
+            <YAxis
+              type="category"
+              dataKey="category"
+              {...chartAxisProps}
+              tick={chartTickSmall}
+              width={104}
+            />
+            <Tooltip
+              cursor={{ fill: 'hsl(212 40% 96% / 0.45)' }}
+              content={
+                <MaterialChartTooltip formatter={(v: number) => [format(v), 'Monthly']} />
+              }
+            />
+            <Bar
+              dataKey="amount"
+              name="Monthly"
+              fill={CHART_PRIMARY_LINE}
+              radius={chartBarRadius}
+              barSize={20}
+              maxBarSize={26}
+            />
           </BarChart>
         </ResponsiveContainer>
-        {guide && <WidgetGuide guide={guide} />}
-      </CardContent>
-    </Card>
+      </ChartPlot>
+    </DashboardWidgetCard>
   );
 }

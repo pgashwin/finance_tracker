@@ -1,8 +1,8 @@
 import { AppRoutes } from '@/routes';
-import { useDirtyGuard, useThemeEffect } from '@/hooks/useDirtyGuard';
+import { useDirtyGuard, useLightThemeOnly } from '@/hooks/useDirtyGuard';
 
 export default function App() {
   useDirtyGuard();
-  useThemeEffect();
+  useLightThemeOnly();
   return <AppRoutes />;
 }

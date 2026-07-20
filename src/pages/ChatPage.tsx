@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { AlertCircle, MessageSquare, Trash2 } from 'lucide-react';
+import { Icon } from '@/components/ui/icon';
 import { useFinanceStore } from '@/store/financeStore';
 import { useAiConfig } from '@/hooks/useAiConfig';
 import { ChatMessageBubble } from '@/components/chat/ChatMessage';
@@ -152,9 +152,9 @@ export function ChatPage() {
     <div className="mx-auto flex h-[calc(100dvh-4rem)] max-w-3xl flex-col md:h-[calc(100dvh-2rem)]">
       <div className="mb-4 flex items-start justify-between gap-3">
         <div>
-          <h2 className="flex items-center gap-2 text-2xl font-bold">
-            <MessageSquare className="h-6 w-6" />
-            Portfolio Chat
+          <h2 className="flex items-center gap-2 text-2xl font-medium tracking-tight">
+            <Icon name="chat" size="lg" filled className="text-primary" />
+            AI Assistant
           </h2>
           <p className="mt-1 text-sm text-muted-foreground">
             Ask questions about your finances using AI. Your API key stays on this device.
@@ -162,7 +162,7 @@ export function ChatPage() {
         </div>
         {messages.length > 0 && (
           <Button type="button" variant="outline" size="sm" onClick={handleClearHistory}>
-            <Trash2 className="h-4 w-4" />
+            <Icon name="delete" size="sm" />
             Clear
           </Button>
         )}
@@ -171,7 +171,7 @@ export function ChatPage() {
       {!configured && (
         <Card className="mb-4 border-warning/40 bg-warning/5">
           <CardContent className="flex items-start gap-3 p-4 text-sm">
-            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
+            <Icon name="error" size="sm" className="shrink-0 text-warning" />
             <div>
               <p className="font-medium">AI assistant not configured</p>
               <p className="mt-1 text-muted-foreground">

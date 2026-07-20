@@ -1,12 +1,13 @@
 import { cn } from '@/lib/utils';
 import type { DeviationStatus, WidgetGuideContent } from '@/content/dashboardGuides';
-import { Info } from 'lucide-react';
+import { Icon } from '@/components/ui/icon';
+import { dynamicCardTheme } from '@/utils/dynamicCardTheme';
 
 const statusStyles: Record<DeviationStatus, string> = {
   good: 'text-success',
   warn: 'text-warning',
   bad: 'text-destructive',
-  neutral: 'text-muted-foreground',
+  neutral: 'text-secondary',
   na: 'text-muted-foreground',
 };
 
@@ -21,13 +22,25 @@ const statusLabel: Record<DeviationStatus, string> = {
 interface WidgetGuideProps {
   guide: WidgetGuideContent;
   className?: string;
+  variant?: 'default' | 'embedded';
+  /** Pin to bottom of a flex column card (dashboard widgets). */
+  pinned?: boolean;
 }
 
-export function WidgetGuide({ guide, className }: WidgetGuideProps) {
+export function WidgetGuide({ guide, className, variant = 'default', pinned = false }: WidgetGuideProps) {
   return (
-    <div className={cn('mt-4 space-y-2 rounded-xl bg-surface-container p-3 text-xs', className)}>
+    <div
+      className={cn(
+        'space-y-2 rounded-xl p-3 text-xs',
+        pinned ? 'mt-auto shrink-0' : 'mt-4',
+        variant === 'embedded'
+          ? 'border border-white/40 bg-white/50 backdrop-blur-sm'
+          : 'rounded-2xl border border-outline-variant/30 bg-surface-container-low',
+        className,
+      )}
+    >
       <div className="flex items-start gap-2">
-        <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+        <Icon name="info" size="xs" className="mt-0.5 shrink-0 text-primary" />
         <p className="text-muted-foreground">{guide.summary}</p>
       </div>
       <p>
@@ -64,13 +77,15 @@ interface MetricGuideRowProps {
 }
 
 export function MetricGuideRow({ label, value, ideal, deviation, status }: MetricGuideRowProps) {
+  const theme = dynamicCardTheme(status);
+
   return (
-    <div className="rounded-xl bg-surface-container p-3">
+    <div className={cn('md-dynamic-card p-4', theme.card, theme.border)}>
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <dt className="text-sm font-medium">{label}</dt>
-        <dd className="text-lg font-semibold">{value}</dd>
+        <dt className="text-sm font-medium opacity-90">{label}</dt>
+        <dd className={cn('text-lg font-medium', theme.value)}>{value}</dd>
       </div>
-      <p className="mt-1 text-xs text-muted-foreground">Ideal: {ideal}</p>
+      <p className="mt-1 text-xs opacity-75">Ideal: {ideal}</p>
       <DeviationBadge status={status} text={deviation} />
     </div>
   );

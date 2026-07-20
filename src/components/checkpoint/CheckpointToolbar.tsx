@@ -3,7 +3,7 @@ import { serializeState, deserializeState, checkpointSummary } from '@/services/
 import { loadCheckpointFromFile, saveCheckpointToFile } from '@/services/checkpoint/fileAccess';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { FolderOpen, Save, FilePlus, RotateCcw } from 'lucide-react';
+import { Icon } from '@/components/ui/icon';
 
 export function CheckpointToolbar() {
   const state = useFinanceStore((s) => s.state);
@@ -48,19 +48,19 @@ export function CheckpointToolbar() {
   return (
     <div className="flex flex-wrap items-center gap-2">
       <Button variant="outline" size="sm" onClick={handleLoad}>
-        <FolderOpen className="h-4 w-4" />
+        <Icon name="folder_open" size="sm" />
         <span className="hidden sm:inline">Load</span>
       </Button>
       <Button variant="outline" size="sm" onClick={() => handleSave(false)}>
-        <Save className="h-4 w-4" />
+        <Icon name="save" size="sm" />
         <span className="hidden sm:inline">Save</span>
       </Button>
       <Button variant="outline" size="sm" onClick={() => handleSave(true)}>
-        <FilePlus className="h-4 w-4" />
+        <Icon name="note_add" size="sm" />
         <span className="hidden sm:inline">Save As</span>
       </Button>
       <Button variant="ghost" size="sm" onClick={handleNew}>
-        <RotateCcw className="h-4 w-4" />
+        <Icon name="restart_alt" size="sm" />
         <span className="hidden sm:inline">New</span>
       </Button>
       {isDirty ? (

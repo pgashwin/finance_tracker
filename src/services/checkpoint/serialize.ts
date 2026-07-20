@@ -32,19 +32,21 @@ export function deserializeState(json: string): FinanceState {
   } as FinanceState;
 }
 
-export function checkpointSummary(state: FinanceState): string {
-  const parts = [
-    `${state.liquidFunds.length} liquid fund(s)`,
-    `${state.fixedDeposits.length} FD(s)`,
-    `${state.holdings.length} holding(s)`,
-    `${state.cryptoHoldings.length} crypto holding(s)`,
-    `${state.loans.length} loan(s)`,
-    `${state.recurringExpenses.length} recurring expense(s)`,
-    `${state.insurancePolicies.length} insurance policy(ies)`,
-    `${state.retirementAccounts.length} PPF/PF account(s)`,
-    `${state.assets.length} asset(s)`,
+export function checkpointSummary(state: FinanceState, label = 'Checkpoint loaded'): string {
+  const counts = [
+    state.liquidFunds.length,
+    state.fixedDeposits.length,
+    state.holdings.length,
+    (state.cryptoHoldings ?? []).length,
+    state.loans.length,
+    state.recurringExpenses.length,
+    state.insurancePolicies.length,
+    state.retirementAccounts.length,
+    state.assets.length,
   ];
-  return `Loaded ${parts.join(', ')}`;
+  const total = counts.reduce((sum, count) => sum + count, 0);
+  const categories = counts.filter((count) => count > 0).length;
+  return `${label} — ${total} record${total === 1 ? '' : 's'} across ${categories} categor${categories === 1 ? 'y' : 'ies'}`;
 }
 
 export function defaultCheckpointFilename(): string {

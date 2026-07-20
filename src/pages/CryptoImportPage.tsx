@@ -13,7 +13,7 @@ import {
   mergeCryptoHoldings,
   type ParsedCryptoRow,
 } from '@/services/import/coindcxCsv';
-import { ArrowLeft } from 'lucide-react';
+import { Icon } from '@/components/ui/icon';
 
 export function CryptoImportPage() {
   const cryptoHoldings = useFinanceStore((s) => s.state.cryptoHoldings ?? []);
@@ -58,10 +58,10 @@ export function CryptoImportPage() {
       <div className="flex items-center gap-3">
         <Link to="/crypto">
           <Button variant="ghost" size="icon">
-            <ArrowLeft className="h-4 w-4" />
+            <Icon name="arrow_back" size="sm" />
           </Button>
         </Link>
-        <h2 className="text-2xl font-bold">Import CoinDCX Report</h2>
+        <h2 className="text-2xl font-medium tracking-tight">Import CoinDCX Report</h2>
       </div>
       <Card>
         <CardHeader>

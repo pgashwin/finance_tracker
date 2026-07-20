@@ -1,8 +1,9 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import type { ReactNode } from 'react';
 import type { MetricAssessment, WidgetGuideContent } from '@/content/dashboardGuides';
 import { DeviationBadge, WidgetGuide } from '@/components/dashboard/WidgetGuide';
+import { dynamicCardTheme } from '@/utils/dynamicCardTheme';
 
 interface KpiCardProps {
   title: string;
@@ -23,26 +24,31 @@ export function KpiCard({
   guide,
   assessment,
 }: KpiCardProps) {
+  const theme = dynamicCardTheme(assessment?.status, trend);
+
   return (
-    <Card className="flex flex-col">
+    <div className={cn('md-dynamic-card flex h-full flex-col overflow-hidden', theme.card, theme.border)}>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
-        {icon}
+        <CardTitle className="text-sm font-medium opacity-80">{title}</CardTitle>
+        {icon && (
+          <div
+            className={cn(
+              'flex h-9 w-9 items-center justify-center rounded-full shadow-sm',
+              theme.iconChip,
+            )}
+          >
+            {icon}
+          </div>
+        )}
       </CardHeader>
-      <CardContent className="flex flex-1 flex-col">
-        <div
-          className={cn(
-            'text-2xl font-bold',
-            trend === 'positive' && 'text-success',
-            trend === 'negative' && 'text-destructive',
-          )}
-        >
-          {value}
+      <CardContent className="flex min-h-0 flex-1 flex-col gap-4 pt-0">
+        <div className="space-y-2">
+          <div className={cn('text-2xl font-medium tracking-tight', theme.value)}>{value}</div>
+          {subtitle && <p className="text-xs opacity-75">{subtitle}</p>}
+          {assessment && <DeviationBadge status={assessment.status} text={assessment.deviation} />}
         </div>
-        {subtitle && <p className="mt-1 text-xs text-muted-foreground">{subtitle}</p>}
-        {assessment && <DeviationBadge status={assessment.status} text={assessment.deviation} />}
-        {guide && <WidgetGuide guide={guide} className="mt-3" />}
+        {guide && <WidgetGuide guide={guide} pinned className="mt-0" variant="embedded" />}
       </CardContent>
-    </Card>
+    </div>
   );
 }

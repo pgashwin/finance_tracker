@@ -10,7 +10,7 @@ import { useCurrency } from '@/hooks/useCurrency';
 import { totalEmergencyFund, totalLiquidAssets } from '@/services/analytics/netWorth';
 import type { CurrencyCode, LiquidFund } from '@/types';
 import { BucketTotalBar } from '@/components/ui/bucket-total-bar';
-import { Pencil, Plus, Trash2 } from 'lucide-react';
+import { Icon } from '@/components/ui/icon';
 
 export function LiquidFundsPage() {
   const state = useFinanceStore((s) => s.state);
@@ -68,9 +68,9 @@ export function LiquidFundsPage() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">Liquid Funds</h2>
+        <h2 className="text-2xl font-medium tracking-tight">Liquid Funds</h2>
         <Button onClick={openNew}>
-          <Plus className="h-4 w-4" /> Add
+          <Icon name="add" size="sm" /> Add
         </Button>
       </div>
       {items.length > 0 && (
@@ -106,10 +106,10 @@ export function LiquidFundsPage() {
                 <div className="flex items-center gap-3">
                   <span className="font-semibold">{format(item.balance, item.currency)}</span>
                   <Button variant="ghost" size="icon" onClick={() => openEdit(item)}>
-                    <Pencil className="h-4 w-4" />
+                    <Icon name="edit" size="sm" />
                   </Button>
                   <Button variant="ghost" size="icon" onClick={() => remove(item.id)}>
-                    <Trash2 className="h-4 w-4 text-destructive" />
+                    <Icon name="delete" size="sm" className="text-destructive" />
                   </Button>
                 </div>
               </CardContent>

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ExternalLink, Loader2 } from 'lucide-react';
+import { Icon } from '@/components/ui/icon';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -61,9 +61,9 @@ export function AiAssistantSettingsCard() {
       </CardHeader>
       <CardContent className="space-y-4">
         <p className="text-sm text-muted-foreground">
-          Bring your own API key to chat about your portfolio on the{' '}
+          Bring your own API key to ask questions about your portfolio on the{' '}
           <Link to="/chat" className="text-primary underline-offset-4 hover:underline">
-            Chat
+            AI Assistant
           </Link>{' '}
           page. Keys are stored in this browser only — never in your checkpoint file.
         </p>
@@ -74,7 +74,7 @@ export function AiAssistantSettingsCard() {
             checked={config.enabled}
             onChange={(e) => setConfig({ ...config, enabled: e.target.checked })}
           />
-          Enable portfolio chat assistant
+          Enable AI assistant
         </label>
 
         <div>
@@ -117,7 +117,7 @@ export function AiAssistantSettingsCard() {
               className="mt-1 inline-flex items-center gap-1 text-xs text-primary hover:underline"
             >
               {preset.docsLabel ?? 'Documentation'}
-              <ExternalLink className="h-3 w-3" />
+              <Icon name="open_in_new" size="xs" />
             </a>
           )}
         </div>
@@ -142,7 +142,7 @@ export function AiAssistantSettingsCard() {
 
         <div className="flex flex-wrap gap-2">
           <Button type="button" variant="outline" onClick={() => void handleTest()} disabled={testing}>
-            {testing ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+            {testing ? <Icon name="progress_activity" size="sm" spin /> : null}
             Test connection
           </Button>
           <Button type="button" variant="ghost" onClick={handleClearKeys}>
