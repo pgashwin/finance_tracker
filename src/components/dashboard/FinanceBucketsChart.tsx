@@ -40,9 +40,7 @@ export function FinanceBucketsChart({ data, guide }: Props) {
   return (
     <DashboardWidgetCard
       title="Finance Buckets"
-      subtitle={
-        <p className="text-sm text-muted-foreground">Where your money lives across asset classes</p>
-      }
+      subtitle="Where your money lives across asset classes"
       guide={guide}
     >
       <ChartPlot height={300}>

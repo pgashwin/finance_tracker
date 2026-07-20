@@ -32,7 +32,7 @@ export function WidgetGuide({ guide, className, variant = 'default', pinned = fa
     <div
       className={cn(
         'space-y-2 rounded-xl p-3 text-xs',
-        pinned ? 'mt-auto shrink-0' : 'mt-4',
+        pinned ? 'shrink-0' : 'mt-4',
         variant === 'embedded'
           ? 'border border-white/40 bg-white/50 backdrop-blur-sm'
           : 'rounded-2xl border border-outline-variant/30 bg-surface-container-low',

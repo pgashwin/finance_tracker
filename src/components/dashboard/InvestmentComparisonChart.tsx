@@ -55,11 +55,11 @@ export function InvestmentComparisonChart({ data, guide }: Props) {
       title="Investment Type Comparison"
       subtitle={
         best ? (
-          <p className="text-sm text-muted-foreground">
+          <>
             Top performer: <strong className="text-foreground">{best.type}</strong>
             {best.roiPercent != null &&
               ` (${formatPercent(best.roiPercent)}${best.type.includes('rate') ? ' p.a.' : ''})`}
-          </p>
+          </>
         ) : undefined
       }
       guide={guide}

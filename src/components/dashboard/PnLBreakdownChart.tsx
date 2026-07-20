@@ -55,11 +55,8 @@ export function PnLBreakdownChart({ data, totalPnl, guide }: Props) {
   return (
     <DashboardWidgetCard
       title="Profit & Loss Analysis"
-      subtitle={
-        <p className={`text-sm font-medium ${totalPnl >= 0 ? 'text-success' : 'text-destructive'}`}>
-          Total unrealized P&L: {formatCompact(totalPnl)}
-        </p>
-      }
+      subtitle={`Total unrealized P&L: ${formatCompact(totalPnl)}`}
+      subtitleClassName={totalPnl >= 0 ? 'font-medium text-success' : 'font-medium text-destructive'}
       guide={guide}
     >
       <ChartPlot height={288}>

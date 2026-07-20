@@ -48,12 +48,12 @@ export function CashFlowChart({ income, expenses, surplus, investmentSip, guide 
     <DashboardWidgetCard
       title="Monthly Cash Flow"
       subtitle={
-        <p className="text-sm text-muted-foreground">
+        <>
           Surplus after recurring expenses:{' '}
           <strong className={(surplus ?? 0) >= 0 ? 'text-success' : 'text-destructive'}>
             {formatCompact(surplus ?? 0)}
           </strong>
-        </p>
+        </>
       }
       guide={guide}
     >

@@ -13,10 +13,9 @@ import { SpendAnalysisChart } from '@/components/dashboard/SpendAnalysisChart';
 import { InvestmentComparisonChart } from '@/components/dashboard/InvestmentComparisonChart';
 import { AssetsLiabilitiesChart } from '@/components/dashboard/AssetsLiabilitiesChart';
 import { CashFlowChart } from '@/components/dashboard/CashFlowChart';
-import { MetricGuideRow, WidgetGuide } from '@/components/dashboard/WidgetGuide';
+import { KeyRatiosCard } from '@/components/dashboard/KeyRatiosCard';
 import { Button } from '@/components/ui/button';
 import { Tooltip } from '@/components/ui/tooltip';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   WIDGET_GUIDES,
   buildDashboardAssessments,
@@ -137,6 +136,7 @@ export function DashboardPage() {
           <KpiCard
             title="Net Worth"
             value={fmt(nw)}
+            subtitle="Assets minus liabilities"
             trend={nw >= 0 ? 'positive' : 'negative'}
             icon={<Icon name="trending_up" size="sm" filled />}
             guide={WIDGET_GUIDES.netWorth}
@@ -217,33 +217,7 @@ export function DashboardPage() {
 
       <section className="space-y-4">
         <h3 className="text-lg font-semibold">Ratios & Alerts</h3>
-        <Card className="flex h-full flex-col">
-          <CardHeader>
-            <CardTitle>Key Ratios</CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-6">
-            <dl className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {ratioAssessments.map((metric) => (
-                <MetricGuideRow
-                  key={metric.label}
-                  label={metric.label}
-                  value={metric.value}
-                  ideal={metric.ideal}
-                  deviation={metric.deviation}
-                  status={metric.status}
-                />
-              ))}
-              <MetricGuideRow
-                label={overview.pnl.label}
-                value={overview.pnl.value}
-                ideal={overview.pnl.ideal}
-                deviation={overview.pnl.deviation}
-                status={overview.pnl.status}
-              />
-            </dl>
-            <WidgetGuide guide={WIDGET_GUIDES.keyRatios} className="mt-0" />
-          </CardContent>
-        </Card>
+        <KeyRatiosCard ratios={ratioAssessments} pnl={overview.pnl} guide={WIDGET_GUIDES.keyRatios} />
         <div className="grid items-stretch gap-4 lg:grid-cols-2">
           <UpcomingMaturities items={upcomingMaturities(state)} guide={WIDGET_GUIDES.upcomingMaturities} />
           <InsightsPanel insights={insights} guide={WIDGET_GUIDES.insights} />

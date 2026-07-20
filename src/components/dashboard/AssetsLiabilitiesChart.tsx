@@ -37,11 +37,8 @@ export function AssetsLiabilitiesChart({ assets, liabilities, netWorth, guide }:
   return (
     <DashboardWidgetCard
       title="Assets vs Liabilities"
-      subtitle={
-        <p className={`text-sm font-medium ${netWorth >= 0 ? 'text-success' : 'text-destructive'}`}>
-          Net worth: {formatCompact(netWorth)}
-        </p>
-      }
+      subtitle={`Net worth: ${formatCompact(netWorth)}`}
+      subtitleClassName={netWorth >= 0 ? 'font-medium text-success' : 'font-medium text-destructive'}
       guide={guide}
     >
       <ChartPlot height={248}>

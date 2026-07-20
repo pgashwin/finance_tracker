@@ -22,14 +22,18 @@ export function AssetAllocationChart({ data, guide }: Props) {
 
   if (!data.length) {
     return (
-      <DashboardWidgetCard title="Asset Allocation" guide={guide}>
+      <DashboardWidgetCard title="Asset Allocation" subtitle="Share of total assets by category" guide={guide}>
         <p className="text-sm text-muted-foreground">Add assets to see allocation.</p>
       </DashboardWidgetCard>
     );
   }
 
   return (
-    <DashboardWidgetCard title="Asset Allocation" guide={guide}>
+    <DashboardWidgetCard
+      title="Asset Allocation"
+      subtitle={`Total assets: ${formatCompact(total)}`}
+      guide={guide}
+    >
       <ChartPlot height={280}>
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>

@@ -57,7 +57,7 @@ export function SpendAnalysisChart({ analysis, guide }: Props) {
     <DashboardWidgetCard
       title="Spend Analysis"
       subtitle={
-        <div className="flex flex-wrap gap-3 text-sm">
+        <div className="flex flex-wrap gap-x-3 gap-y-1">
           <span>
             Monthly: <strong className="text-foreground">{formatCompact(totalMonthly)}</strong>
           </span>

@@ -13,7 +13,11 @@ export function UpcomingMaturities({ items, guide }: Props) {
   const { format } = useCurrency();
 
   return (
-    <DashboardWidgetCard title="Upcoming Maturities (90 days)" guide={guide}>
+    <DashboardWidgetCard
+      title="Upcoming Maturities (90 days)"
+      subtitle="Fixed deposits, policies, and loans maturing soon"
+      guide={guide}
+    >
       {items.length === 0 ? (
         <p className="text-sm text-muted-foreground">No maturities in the next 90 days.</p>
       ) : (

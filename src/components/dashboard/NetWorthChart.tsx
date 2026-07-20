@@ -24,7 +24,11 @@ export function NetWorthChart({ snapshots, guide }: Props) {
 
   if (snapshots.length < 2) {
     return (
-      <DashboardWidgetCard title="Net Worth Trend" guide={guide}>
+      <DashboardWidgetCard
+        title="Net Worth Trend"
+        subtitle="Month-over-month change from recorded snapshots"
+        guide={guide}
+      >
         <p className="text-sm text-muted-foreground">
           Record monthly snapshots to see your net worth trend.
         </p>
@@ -36,7 +40,11 @@ export function NetWorthChart({ snapshots, guide }: Props) {
   const gradientId = useId().replace(/:/g, '');
 
   return (
-    <DashboardWidgetCard title="Net Worth Trend" guide={guide}>
+    <DashboardWidgetCard
+      title="Net Worth Trend"
+      subtitle="Month-over-month change from recorded snapshots"
+      guide={guide}
+    >
       <ChartPlot height={268}>
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={data} margin={chartMargin}>
